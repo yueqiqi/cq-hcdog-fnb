@@ -116,7 +116,7 @@
 				</el-checkbox-group>
 			</div>
 
-			<div style="text-align: left;color:#c5c5c8;margin-top:20px;margin-left: 50px;border-left:3px solid #6F93FE;padding-left:3px;">储值卡内常用项目</div>
+			<div style="text-align: left;color:#c5c5c8;margin-top:20px;margin-left: 50px;border-left:3px solid #6F93FE;padding-left:3px;">会员卡内常用项目</div>
 			<el-checkbox-group @change="checkGroup2" v-model="checkServer2" style="">
 				<div style="margin-left: 50px;" class="c-checkBoxs">
 					<div style="width:100%;flex-wrap:wrap;display: flex;justify-content: left;">
@@ -739,26 +739,76 @@ export default {
 				.then(res => {
 					console.log('请求会员卡列表结果', res);
 					if (res.code == '10000') {
-						res.data.map(item => {
-							if (item.memberCardType == 3) {
-								//次卡
-								item.laborItemsVoList.map(items => {
-									items.goodsCome = 2;
-									items.goodsName = items.name;
-									items.goodsVipId = item.customerMemberCardId;
-									items.goodsCount = 1;
-									items.num = items.goodsCount;
-								});
-								item.freeItemsVoList.map(items => {
-									items.goodsCome = 2;
-									items.goodsName = items.name;
-									items.goodsVipId = item.customerMemberCardId;
-									items.goodsCount = 1;
-									items.num = items.goodsCount;
-								});
-								this.sCheck.push(item);
-							}
-						});
+						this.sCheck = [];
+						if (res.data) {
+							let arr = [];
+							let arr2 = [];
+							let arr3 = [];
+							res.data.map(item => {
+								if (item.memberCardType == 3) {
+									//次卡
+									item.laborItemsVoList.map(items => {
+										items.goodsCount = 1;
+										items.num = items.goodsCount;
+										items.goodsCome = 2;
+										items.goodsName = items.name;
+										items.goodsVipId = item.customerMemberCardId;
+										// items.type = items.goodsType;
+									});
+									item.freeItemsVoList.map(items => {
+										items.goodsCome = 2;
+										items.goodsName = items.name;
+										items.goodsCount = 1;
+										items.num = items.goodsCount;
+										items.goodsVipId = item.customerMemberCardId;
+									});
+									arr.push(item);
+								} else if (item.memberCardType == 1) {
+									item.freeItemsVoList.map(items => {
+										items.goodsCome = 2;
+										items.goodsName = items.name;
+										items.goodsCount = 1;
+										items.num = items.goodsCount;
+										items.goodsVipId = item.customerMemberCardId;
+									});
+									arr2.push(item);
+								} else if (item.memberCardType == 2) {
+									item.freeItemsVoList.map(items => {
+										items.goodsCome = 2;
+										items.goodsName = items.name;
+										items.goodsCount = 1;
+										items.num = items.goodsCount;
+										items.goodsVipId = item.customerMemberCardId;
+									});
+									arr3.push(item);
+								}
+							});
+							// console.log('%c自己会员卡','color:#70ff57;font-size:20px;font-weight:bold',this.sCheck)
+							this.sCheck = this.deWeight(arr).concat(this.deWeight(arr2).concat(this.deWeight(arr3)));
+						}
+						
+						
+						
+						// res.data.map(item => {
+						// 	if (item.memberCardType == 3) {
+						// 		//次卡
+						// 		item.laborItemsVoList.map(items => {
+						// 			items.goodsCome = 2;
+						// 			items.goodsName = items.name;
+						// 			items.goodsVipId = item.customerMemberCardId;
+						// 			items.goodsCount = 1;
+						// 			items.num = items.goodsCount;
+						// 		});
+						// 		item.freeItemsVoList.map(items => {
+						// 			items.goodsCome = 2;
+						// 			items.goodsName = items.name;
+						// 			items.goodsVipId = item.customerMemberCardId;
+						// 			items.goodsCount = 1;
+						// 			items.num = items.goodsCount;
+						// 		});
+						// 		this.sCheck.push(item);
+						// 	}
+						// });
 						this.radio = true;
 						console.log('%c展示的会员卡', 'color:#ff0000;font-size:20px;font-weight:bold', this.sCheck);
 					} else {
