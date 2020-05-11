@@ -476,7 +476,7 @@ export default {
 			this.$http
 				.post2(
 					'https://autodt-gateway.yunchefu.cn/message/wechat/miniAppQrCode',
-					{ appId: 'wx7451a1aa96196cd1', path: '/pages/redirect/index?orderNo=' + this.form.orderNo + '&merchantCode=' + this.merchantCode },
+					{ appId: 'wx7451a1aa96196cd1', path: '/pagesOrder/detail/index?orderNo=' + this.form.orderNo + '&merchantCode=' + this.merchantCode },
 					{
 						headers: {},
 						// responseType: "blob"
