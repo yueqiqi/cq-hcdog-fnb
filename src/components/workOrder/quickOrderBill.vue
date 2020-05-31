@@ -100,7 +100,7 @@
 			<div class="d-flex" style="margin-left: 10px;">
 				<!--  -->
 				<el-button type="text" @click="setCompAlert" :disabled="dis" v-if="orderStatus!=3&&orderStatus!=2">完工</el-button>
-				<!-- <el-button type="text" @click="setBuyerAlert" :disabled="dis">挂账</el-button> -->
+				<el-button type="text" @click="setBuyerAlert" :disabled="dis">挂账</el-button>
 			</div>
 		</div>
 		<!-- 选择销售施工弹窗 -->
@@ -266,6 +266,7 @@ export default {
 		//第一次进入此页面
 		this.isFirstEnter=true
 		this.createId = localStorage.getItem('createId')
+		console.log('创建',this.createId)
 		// console.log('id',this.createId)
 		//是否是会员
 		this.isThereVip=this.$route.query.isThereVip
@@ -288,10 +289,13 @@ export default {
 		
 		this.merchantCode = this.$route.query.merchantCode;
 		
-		this.merchantPhone = f.merchantPhone,
+		this.merchantPhone = f.merchantPhone
 		
-		this.merchantName = f.merchantName,
-		
+		this.merchantName = f.merchantName
+		this.customerCodeOther=r.customerCodeOther
+		this.customerPhoneOther =r.customerPhoneOther   
+		this.customerNameOther=r.customerNameOther 
+		 console.log('使用他人会员卡',this.customerPhoneOther,this.customerNameOther,this.customerCodeOther)
 		f.workOrderCode=r.workOrderCode
 		f.orderId = r.orderid;
 		f.goodsCome = r.goodsCome;
@@ -302,7 +306,6 @@ export default {
 		f.mileage = r.mileage;
 		f.engineNum = r.engineNum;
 		f.vehicleIdNum = r.vehicleIdNum;
-		console.log('车架号',r.vehicleIdNum)
 		f.applyDate = r.applyDate;
 		f.carColor = r.carColor;
 		f.brandName = r.brandName
@@ -467,6 +470,9 @@ this.$store.commit('list',this.List)
 		) {
 			this.$http
 				.post('/LaborFastOrder/addLaborOrder', {
+					customerCodeOther:this.customerCodeOther,
+					customerPhoneOther :this.customerPhoneOther ,
+					customerNameOther :this.customerNameOther ,
 					isThereVip:this.isThereVip,
 					merchantCode: this.merchantCode,
 					status:this.statusList,
@@ -561,6 +567,9 @@ this.$store.commit('list',this.List)
 			}
 			this.$http
 				.post('/LaborFastOrder/sendSms', {
+					customerCodeOther:this.customerCodeOther,
+					customerPhoneOther :this.customerPhoneOther ,
+					customerNameOther :this.customerNameOther ,
 					isThereVip:this.isThereVip,
 					merchantCode: this.merchantCode,
 					brandName:this.form.brandName,

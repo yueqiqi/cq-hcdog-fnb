@@ -321,6 +321,9 @@ export default {
 	},
 	data() {
 		return {
+			customerCodeOther:'',
+			customerNameOther: '',
+			customerPhoneOther:'',
 			// 服务商品选中的值
 			choosedAlert: [],
 			remarsk: '',
@@ -483,7 +486,6 @@ export default {
 			this.showInput = true;
 			this.getFcheck();
 			setTimeout(() => {
-				console.log('查看编辑展示的值', this.choosed);
 				let arr = [];
 				let arr2 = [];
 				let arr3 = [];
@@ -501,6 +503,7 @@ export default {
 						console.log('arr', arr);
 					} 
 					if(item.goodsVipId != null) {
+						console.log('使用他人会员卡',this.sCheck)
 						this.sCheck.map(pd => {
 							if (pd.laborItemsVoList != null && pd.laborItemsVoList.length > 0) {
 								pd.laborItemsVoList.map(lab => {
@@ -525,7 +528,6 @@ export default {
 						});
 					}
 				});
-				console.log("arr,this.choosed: " ,arr,this.choosed);
 				for (var i = 0; i < this.choosed.length; i++) {
 					if (this.choosed[i].goodsVipId == null) {
 						var obj = this.choosed[i];
@@ -547,17 +549,15 @@ export default {
 
 				// 弹框选中的值
 				this.choosedAlert = this.uniqs(arr4);
-				console.log('外部选择', this.uniqs(arr4));
 				this.fCheck = this.fCheck.concat(this.uniqs(arr4));
-				// this.checkServer=arr
 				this.checkServer = arr.concat(this.uniqs(arr4));
 				this.checkServer2 = arr2.concat(arr3);
-				// this.carList=arr2.concat(arr).concat(arr3)
 				this.carList = arr2
 					.concat(arr)
 					.concat(arr3)
 					.concat(this.uniqs(arr4));
 			}, 2800);
+			
 		} else {
 			this.getFcheck();
 			this.getCarBrand();
@@ -568,7 +568,6 @@ export default {
 		addNew(plateNumber, phone, name) {
 			var carType2 = '';
 			var amgValue2 = '';
-			console.log('车型车系', this.carType, this.amgValue);
 			if (this.carType != null) {
 				carType2 = this.carType.split('/')[1];
 			}
@@ -592,7 +591,6 @@ export default {
 					merchantCode: this.merchantCode
 				})
 				.then(res => {
-					console.log('%c请求新增结果', 'color:red;font-size:20px', res);
 					if (res.code == '10000') {
 						this.vehicleId = res.data.vehicleId;
 						this.customerCode = res.data.customerCode;
@@ -614,16 +612,27 @@ export default {
 		/**
 		 * 工单列表进入查看
 		 */
-		getLookList(copy) {
-			this.$http
+	async	getLookList(copy) {
+		await	this.$http
 				.get('/WorkOrder/getWorkOrderInfo', {
 					merchantCode: this.merchantCode,
 					orderCode: this.$route.query.workOrderCode,
 					orderType: 2
 				})
 				.then(res => {
-					console.log('请求查看快捷开单结果', res);
 					if (res.code == '10000') {
+						this.isMyCard=res.data.isMyCard//1--使用他人会员卡,0--未使用
+						if(res.data.isMyCard==1){
+							this.radio=true
+							let state = res.data.customerNameOther+'/'+res.data.customerPhoneOther
+							this.state = state;
+							this.customerCodeOther =res.data.customerCodeOther||''
+							this.customerNameOther = state.split('/')[0]||''
+							this.customerPhoneOther = state.split('/')[1]||''
+						}else{
+							this.radio=false
+						}
+						
 						this.remarsk = res.data.remarks;
 						var seriesName = res.data.seriesName;
 						var modelName = res.data.modelName;
@@ -631,10 +640,8 @@ export default {
 							if (res.data.brandName == item.brandName) {
 								this.brandName = item.value;
 								this.chCar(item.value);
-								console.log('数据回显第一层');
 							}
 						});
-
 						setTimeout(() => {
 							let that = this;
 							that.series.map(item => {
@@ -651,11 +658,15 @@ export default {
 									}, 1500);
 								}
 							});
-							console.log('最后的值', this.series);
 						}, 1500);
 
 						//+++++++++++++++++++++++
+						if(!this.radio){
+							
 						this.inputVipList(res.data.plateNumber);
+						}else{
+							this.getOther(res.data.plateNumber)
+						}
 						setTimeout(() => {
 							//+++++++++++++++++++++++
 							copy,
@@ -681,21 +692,14 @@ export default {
 							this.amgValue = res.data.seriesName;
 							// 已经选择的开单项目
 							this.choosed = res.data.laborGoodsVoList;
-							// this
-							// this.checkServer=this.checkServer.concat(this.choosed)
-							// console.log('编辑复制需要选中的',this.checkServer)
-							// this.fCheck=res.data.laborGoodsVoList
-							// this.checkServer=this.fCheck
 							//客户编码
 							this.customerCode = res.data.customerCode;
-							// res.data.laborGoodsVoList.map(item=>{
-							// 	this.carList.push(item)
-							// })
 							//工单状态
 							this.orderStatus = res.data.status;
 
 							//工单时间
 							this.workorderTime = res.data.workorderTime;
+						
 						}, 2000);
 
 						// this
@@ -704,6 +708,133 @@ export default {
 					}
 				});
 		},
+
+
+getOther(condition){
+	this.$http
+		.get('/LaborFastOrder/findVipGoods', {
+			merchantCode: this.merchantCode,
+			condition
+		})
+		.then(res => {
+			if (res.code == '10000') {
+				this.buyer=res.data.buyoncreditMoney||0
+				var seriesName = res.data.seriesName;
+				var modelName = res.data.modelName;
+				this.brand.map(item => {
+					if (res.data.brandName == item.brandName) {
+						this.brandName = item.value;
+						this.chCar(item.value);
+					}
+				});
+	
+				setTimeout(() => {
+					let that = this;
+					that.series.map(item => {
+						if (seriesName == item.label) {
+							var endseries = item.value;
+							that.getSeriesList2(item.value.split('/')[0]);
+							setTimeout(() => {
+								item.children.map(items => {
+									if (items.vehicleName == modelName) {
+										that.seriesName = [endseries, items.value];
+									}
+								});
+							}, 1500);
+						}
+					});
+				}, 1500);
+	
+				//是否是会员卡
+				if (res.data.canUseNum == 0) {
+					this.isThereVip = 0;
+				} else {
+					this.isThereVip = 1;
+				}
+	
+				// 手机号
+				this.carAddTel = res.data.customerPhone;
+				// 客户姓名
+				this.carAddName = res.data.customerName;
+				// 本次里程
+				this.carKil = res.data.lastMileage;
+				// 车辆注册日期
+				this.carDate = res.data.registeredDate;
+				// 发动机号
+				this.carAddEngine = res.data.engineNum;
+				// 车架号
+				this.carVin = res.data.vehicleIdNum;
+				// 车身颜色
+				this.carColor = res.data.vehicleColor;
+				// 车型名称
+				// this.carType=res.data.brandName
+				// 车系名称
+				// this.amgValue=res.data.modelName
+				// 会员卡id
+				this.goodsVipId = res.data.customerMemberCardId;
+				// 商家名称
+				this.merchantName = res.data.merchantName;
+				// 商家电话
+				this.merchantPhone = res.data.merchantPhone;
+				//车主id
+				this.vehicleId = res.data.vehicleId;
+				//车主code
+				this.customerCode = res.data.customerCode;
+	
+				this.showInput = true;
+				this.sCheck = [];
+				if (res.data.vipGoodsList) {
+					let arr = [];
+					let arr2 = [];
+					let arr3 = [];
+					res.data.vipGoodsList.map(item => {
+						if (item.memberCardType == 3) {
+							//次卡
+							item.laborItemsVoList.map(items => {
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsVipId = item.customerMemberCardId;
+							});
+							item.freeItemsVoList.map(items => {
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsVipId = item.customerMemberCardId;
+							});
+							arr.push(item);
+						} else if (item.memberCardType == 1) {
+							item.freeItemsVoList.map(items => {
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsVipId = item.customerMemberCardId;
+							});
+							arr2.push(item);
+						} else if (item.memberCardType == 2) {
+							item.freeItemsVoList.map(items => {
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsVipId = item.customerMemberCardId;
+							});
+							arr3.push(item);
+						}
+					});
+					this.sCheck = this.deWeight(arr).concat(this.deWeight(arr2).concat(this.deWeight(arr3)));
+					this.getVipProduct(this.customerCodeOther);
+				}
+				// this
+			} else {
+				alert(res.message);
+			}
+		});
+},
+
 
 		/**
 		 * 获取快捷下单商品列表
@@ -714,7 +845,6 @@ export default {
 					merchantCode: this.merchantCode
 				})
 				.then(res => {
-					console.log('快捷开单商品列表结果', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.goodsCode = item.code;
@@ -730,16 +860,15 @@ export default {
 		/**
 		 * 获取他人会员卡内的商品
 		 */
-		getVipProduct(customerCode) {
-			this.$http
+	async	getVipProduct(customerCode) {
+		await	this.$http
 				.get('/LaborFastOrder/findOtherVipGoods', {
 					merchantCode: this.merchantCode,
 					customerCode
 				})
 				.then(res => {
-					console.log('请求会员卡列表结果', res);
 					if (res.code == '10000') {
-						this.sCheck = [];
+						
 						if (res.data) {
 							let arr = [];
 							let arr2 = [];
@@ -783,34 +912,9 @@ export default {
 									arr3.push(item);
 								}
 							});
-							// console.log('%c自己会员卡','color:#70ff57;font-size:20px;font-weight:bold',this.sCheck)
-							this.sCheck = this.deWeight(arr).concat(this.deWeight(arr2).concat(this.deWeight(arr3)));
+							this.sCheck = this.sCheck.concat(this.deWeight(arr).concat(this.deWeight(arr2).concat(this.deWeight(arr3))));
 						}
-						
-						
-						
-						// res.data.map(item => {
-						// 	if (item.memberCardType == 3) {
-						// 		//次卡
-						// 		item.laborItemsVoList.map(items => {
-						// 			items.goodsCome = 2;
-						// 			items.goodsName = items.name;
-						// 			items.goodsVipId = item.customerMemberCardId;
-						// 			items.goodsCount = 1;
-						// 			items.num = items.goodsCount;
-						// 		});
-						// 		item.freeItemsVoList.map(items => {
-						// 			items.goodsCome = 2;
-						// 			items.goodsName = items.name;
-						// 			items.goodsVipId = item.customerMemberCardId;
-						// 			items.goodsCount = 1;
-						// 			items.num = items.goodsCount;
-						// 		});
-						// 		this.sCheck.push(item);
-						// 	}
-						// });
 						this.radio = true;
-						console.log('%c展示的会员卡', 'color:#ff0000;font-size:20px;font-weight:bold', this.sCheck);
 					} else {
 						alert(res.message);
 						this.radio = false;
@@ -828,18 +932,14 @@ export default {
 					condition
 				})
 				.then(res => {
-					console.log('请求输入车牌号结果', res.data.vehicleId, res);
 					if (res.code == '10000') {
 						this.buyer=res.data.buyoncreditMoney||0
 						var seriesName = res.data.seriesName;
 						var modelName = res.data.modelName;
-						// var modelName=res.data.seriesName
-						// var seriesName=res.data.modelName
 						this.brand.map(item => {
 							if (res.data.brandName == item.brandName) {
 								this.brandName = item.value;
 								this.chCar(item.value);
-								console.log('数据回显第一层');
 							}
 						});
 
@@ -853,13 +953,11 @@ export default {
 										item.children.map(items => {
 											if (items.vehicleName == modelName) {
 												that.seriesName = [endseries, items.value];
-												console.log('选中的值999', that.seriesName);
 											}
 										});
 									}, 1500);
 								}
 							});
-							console.log('最后的值', this.series);
 						}, 1500);
 
 						//是否是会员卡
@@ -881,7 +979,6 @@ export default {
 						this.carAddEngine = res.data.engineNum;
 						// 车架号
 						this.carVin = res.data.vehicleIdNum;
-						console.log('车架号', this.carVin);
 						// 车身颜色
 						this.carColor = res.data.vehicleColor;
 						// 车型名称
@@ -914,7 +1011,6 @@ export default {
 										items.goodsCome = 1;
 										items.goodsName = items.name;
 										items.goodsVipId = item.customerMemberCardId;
-										// items.type = items.goodsType;
 									});
 									item.freeItemsVoList.map(items => {
 										items.goodsCome = 1;
@@ -944,7 +1040,6 @@ export default {
 									arr3.push(item);
 								}
 							});
-							// console.log('%c自己会员卡','color:#70ff57;font-size:20px;font-weight:bold',this.sCheck)
 							this.sCheck = this.deWeight(arr).concat(this.deWeight(arr2).concat(this.deWeight(arr3)));
 						}
 						// this
@@ -958,19 +1053,11 @@ export default {
 		 * @param {Object} 会员卡tab变化
 		 */
 		vipChange(val) {
-			// console.log('选中的会员卡',val)
-			// this.vipBoxCur=val.index
 			this.vipbox = val.name;
-			// console.log('张氏的会员卡',this.vipbox)
 		},
 
 		// ====================================================================================================================
 		// ====================================================================================================================
-		// 选择的车牌
-		// chCar(val){
-		// 	console.log('选择车型',val)
-		// 	this.brandId=val.split('/')[0]
-		// },
 
 		// 选择车系
 		chCar2() {
@@ -1034,24 +1121,14 @@ export default {
 							confirmButtonText: '确定'
 						});
 					} else {
-						// this.carList.map(item => {
-							// if (item.type == 2) {
-							// 	item.type = 1;
-							// } else if (item.type == 1) {
-							// 	item.type = 2;
-							// }
-							// if (item.goodsType) {
-							// 	if (item.goodsType == 2) {
-							// 		item.type = 1;
-							// 	} else if (item.goodsType == 1) {
-							// 		item.type = 2;
-							// 	}
-							// }
-						// });
+					console.log(this.customerCodeOther,this.customerPhoneOther,this.customerNameOther)
 						this.$store.commit('list',this.carList)
 						this.$router.push({
 							path: '/quickOrderBill',
 							query: {
+								customerCodeOther:this.customerCodeOther,
+								customerPhoneOther  :this.customerPhoneOther  ,
+								customerNameOther :this.customerNameOther ,
 								// 上次备注
 								remarsk: this.remarsk,
 
@@ -1464,27 +1541,26 @@ export default {
 			this.state = state;
 			this.showInput = true;
 			this.usevip = false;
-			this.customerCode = customerCode;
+			// this.customerCode = customerCode;
+			console.log('他人会员卡',customerCode,state,state.split('/')[0])
+			this.customerCodeOther =customerCode||''
+			this.customerNameOther = state.split('/')[0]||''
+			this.customerPhoneOther = state.split('/')[1]||''
 			this.getVipProduct(customerCode);
 		},
 		// 弹窗
-
-		check(val) {
-			if (this.radio) {
-				this.showSwitch = true;
-			} else {
-				this.showSwitch = false;
-			}
-			console.log('单选框', this.radio, val);
+		check() {
 			if (this.vehicleId != null) {
 				if (this.radio) {
 					this.usevip = true;
 				} else {
+					if(this.customerCodeOther!=''){
+						this.delObj(this.carNum)	
+					}
 					this.otherName = '';
 					this.otherPhone = '';
 					this.otherCar = '';
 					this.state = '';
-					this.sCheck = [];
 				}
 			} else {
 				this.$alert('使用他人会员卡请先输入正确车牌号', '提示', {
@@ -1493,7 +1569,70 @@ export default {
 				this.radio = false;
 			}
 		},
-
+delObj(condition){
+	this.$http
+		.get('/LaborFastOrder/findVipGoods', {
+			merchantCode: this.merchantCode,
+			condition
+		})
+		.then(res => {
+			console.log('请求输入车牌号结果', res.data.vehicleId, res);
+			if (res.code == '10000') {
+				//车主code
+				this.customerCode = res.data.customerCode;
+				this.sCheck = [];
+				if (res.data.vipGoodsList) {
+					let arr = [];
+					let arr2 = [];
+					let arr3 = [];
+					res.data.vipGoodsList.map(item => {
+						if (item.memberCardType == 3) {
+							//次卡
+							item.laborItemsVoList.map(items => {
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsVipId = item.customerMemberCardId;
+								// items.type = items.goodsType;
+							});
+							item.freeItemsVoList.map(items => {
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsVipId = item.customerMemberCardId;
+							});
+							arr.push(item);
+						} else if (item.memberCardType == 1) {
+							item.freeItemsVoList.map(items => {
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsVipId = item.customerMemberCardId;
+							});
+							arr2.push(item);
+						} else if (item.memberCardType == 2) {
+							item.freeItemsVoList.map(items => {
+								items.goodsCome = 1;
+								items.goodsName = items.name;
+								items.goodsCount = 1;
+								items.num = items.goodsCount;
+								items.goodsVipId = item.customerMemberCardId;
+							});
+							arr3.push(item);
+						}
+					});
+					// console.log('%c自己会员卡','color:#70ff57;font-size:20px;font-weight:bold',this.sCheck)
+					this.sCheck = this.deWeight(arr).concat(this.deWeight(arr2).concat(this.deWeight(arr3)));
+				}
+				// this
+			} else {
+				alert(res.message);
+			}
+		});
+},
 		/**
 		 * 车牌编辑
 		 */
@@ -1502,7 +1641,6 @@ export default {
 		},
 		// 接收弹窗传来的值
 		sendCarData(setCarshow, plateNumber) {
-			console.log('接收子组件传来的值', setCarshow, plateNumber);
 			this.state = '';
 			this.radio = false;
 			this.setCarshow = false;
@@ -1528,7 +1666,6 @@ export default {
 							item.label = item.brandName;
 						});
 						this.carTypes = res.data;
-						// this.brandId=
 					}
 				});
 		},
@@ -1574,14 +1711,11 @@ export default {
 		},
 
 		getSeriesList(val) {
-			console.log('选择车型车系');
-			console.log('%c车型', 'color:red', val[0].split('/')[0], val);
 			this.$http
 				.get('/laborSynthesize/getModelList', {
 					familyId: val[0].split('/')[0]
 				})
 				.then(res => {
-					console.log('请求车辆车型结果', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.label = item.vehicleName;
@@ -1597,13 +1731,11 @@ export default {
 		},
 
 		getSeriesList2(val) {
-			console.log('调用接口', val);
 			this.$http
 				.get('/laborSynthesize/getModelList', {
 					familyId: val
 				})
 				.then(res => {
-					console.log('请求车辆车型结果', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.label = item.vehicleName;
@@ -1625,7 +1757,6 @@ export default {
 		openNs() {
 			this.nsIsShow = true;
 			this.$http.get('/LaborGoods/getSelect', {}).then(res => {
-				console.log('请求服务模板结果2', res);
 				if (res.code == '10000') {
 					this.nsList = res.data;
 				}
@@ -1656,7 +1787,6 @@ export default {
 					code: 'S02'
 				})
 				.then(res => {
-					console.log('%c请求新建服务分类的 一 二 三级列表结果', 'color:red;font-size:20px', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.value = item.code + ',' + item.name;
@@ -1742,7 +1872,7 @@ export default {
 		 * 手机号验证
 		 */
 		inputTel(val) {
-			let reg = /^1[3|4|5|7|8][0-9]\d{8}$/;
+			let reg = /^1[3|4|5|6|7|8|9][0-9]\d{8}$/;
 			if (reg.test(val)) {
 			} else {
 				this.$message.error('请输入正确的手机号');

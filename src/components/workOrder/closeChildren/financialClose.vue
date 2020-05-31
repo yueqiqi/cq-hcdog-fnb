@@ -210,6 +210,8 @@ export default {
 	},
 	data() {
 		return {
+			seq:'',//1-先notice-再code
+			gp:'',
 			onceClick:false,//设置按钮只能点击一次
 			//二维码弹窗价格
 			codePrice: 0,
@@ -413,17 +415,14 @@ export default {
 		/**
 		 * 计算
 		 */
-		getClose(payType, buyoncredit) {
+	async	getClose(payType, buyoncredit) {//val为1为正常支付
 			if (buyoncredit == '0') {
 				buyoncredit = false;
 			} else {
 				buyoncredit = true;
 			}
-
-			console.log('是否发送大大屏幕', this.mesCode);
-
 			let f = this.form;
-			this.$http
+		 await	this.$http
 				.post('/LaborBlance/balance/finance', {
 					employeeId: localStorage.getItem('createId')||'',
 					laborOrder: f.laborOrder, //object	工单对象
@@ -453,10 +452,9 @@ export default {
 					orderNo: f.orderNo
 				})
 				.then(res => {
-					console.log('%c请求财务结算结果结果', 'color:red;font-size:20px', res);
 					if (res.code == '10000') {
 						let that = this;
-
+						if(this.gp==1){
 						this.$router.push({
 							path: '/',
 							query: {
@@ -464,16 +462,20 @@ export default {
 								orderNo: this.form.orderNo
 							}
 						});
+						}else{
+							this.notice=false
+							this.getCode(); //获取二维码
+						}
 					this.onceClick=false
 					} else {
-						alert(res.message);
+						alert('订单',res.message);
 					}
 				});
 		},
 
-		getCode() {
+	async	getCode() {
 			// // 分享二维码
-			this.$http
+		await	this.$http
 				.post2(
 					'https://autodt-gateway.yunchefu.cn/message/wechat/miniAppQrCode',
 					{ appId: 'wx7451a1aa96196cd1', path: '/pagesOrder/detail/index?orderNo=' + this.form.orderNo + '&merchantCode=' + this.merchantCode },
@@ -484,17 +486,9 @@ export default {
 					}
 				)
 				.then(res => {
-					// this.codeImg = URL.createObjectURL(res);
-					// // this.codeImg = this.base64ImgtoFile(res);
-					// this.base64 = res;
-					// console.log('请求二维码图片', this.codeImg, res);
-					// if (this.mesCode == 2) {
-					// 	// this.send(Base64.encode(this.base64));
-					// 	this.send(URL.revokeObjectURL(res));
-					// }
+					this.codeIsShow=true
 					this.codeImg =  'data:image/png;base64,' + btoa(
 				  new Uint8Array(res).reduce((data, byte) => data + String.fromCharCode(byte), ''))
-					console.log(this.codeImg)
 					if (this.mesCode == 2) {
 						this.send(this.codeImg);
 					}
@@ -535,17 +529,20 @@ base64ImgtoFile(dataurl, filename = 'file') {
 				});
 		},
 
-		close() {
+	async close() {
 			let f = this.form;
 			let b1 = false; //true vis
 			let b2 = false; //false notice
 			let b3 = false; // false codeIsShow
 			let that = this;
-			if (this.checkedRadio == '3' || this.checkedRadio == '4') {
+			this.gp=1
+			if (this.checkedRadio == '3') {
+				this.gp=0
+				this.payType = this.checkedRadio; //单个
+			await	this.getClose(this.payType, '1')
 				this.getCode();
 				// 二维码弹窗需要展示的弹窗
 				this.codePrice = this.form.shouldPay;
-				this.payType = this.checkedRadio; //单个
 				b1 = false;
 				b2 = false;
 				b3 = true;
@@ -556,8 +553,8 @@ base64ImgtoFile(dataurl, filename = 'file') {
 				this.alipay = 0;
 				this.buyoncredit = '1';
 			} else if (this.checkedRadio == '7') {
+				
 				//组合支付
-
 				let total = Number(this.cash) + Number(this.wx) + Number(this.bank) + Number(this.wxpay) + Number(this.alipay);
 				// 二维码弹窗需要展示的弹窗
 				this.codePrice = this.wx;
@@ -578,21 +575,17 @@ base64ImgtoFile(dataurl, filename = 'file') {
 				if (this.alipay != '' && this.alipay != '0') {
 					arr.push('5');
 				}
-
-				console.log('输入的值', arr, arr.indexOf('3') > -1);
-				if (total == this.form.shouldPay) {
+				if (Number(total).toFixed(2) == this.form.shouldPay) {
+						that.gp=0
 					//判断总金额
 					let check = arr.indexOf('3') > -1;
 					if (check && arr.length >= 2) {
 						//判断输入类型
-
 						that.payType = arr.join(',');
-						that.getCode(); //获取二维码
-						// setTimeout(()=>{
-						b3 = true; //打开二维码弹窗
+					
 						b2 = true; //打开是否收款弹窗
-						// }, 2500);
 					} else if (check == false && arr.length >= 2) {
+						this.gp=1
 						b2 = true;
 						this.payType = arr.join(',');
 						// b3=true     //打开是否收款弹窗
@@ -605,6 +598,7 @@ base64ImgtoFile(dataurl, filename = 'file') {
 						});
 					}
 				} else {
+					console.log('this.form.shouldPay',this.form.shouldPay,Number(total).toFixed(2))
 					this.$alert('请正确输入金额', '提示', {
 						confirmButtonText: '确定',
 						callback: action => {}
@@ -640,7 +634,7 @@ base64ImgtoFile(dataurl, filename = 'file') {
 				this.payType = this.checkedRadio; //单个
 			}
 			this.notice = b2;
-			this.codeIsShow = b3;
+			// this.codeIsShow = b3;
 		},
 
 		// =======================================================================
@@ -649,8 +643,8 @@ base64ImgtoFile(dataurl, filename = 'file') {
 		 */
 		//收到
 		rec(val) {
+			// this.gp=1
 			this.onceClick=true
-			console.log('支付方式', this.payType);
 			this.getClose(this.payType, '1');
 			this.notice = false;
 			this.buyoncredit = 0;
@@ -664,7 +658,7 @@ base64ImgtoFile(dataurl, filename = 'file') {
 		 * 二维码弹窗
 		 */
 		closeCode() {
-			if (this.checkedRadio == '3' || this.checkedRadio == '4') {
+			if (this.checkedRadio == '3' || this.gp==0) {
 				this.$router.push({
 					path: '/',
 					query: {
@@ -678,7 +672,6 @@ base64ImgtoFile(dataurl, filename = 'file') {
 
 		// 二维码发送选择
 		mesChange(val) {
-			console.log(val);
 		},
 
 		// 支付方式
@@ -718,7 +711,7 @@ base64ImgtoFile(dataurl, filename = 'file') {
 					arr.push('5');
 				}
 
-				if (total == this.form.shouldPay) {
+				if (Number(total).toFixed(2) == this.form.shouldPay) {
 					//判断总金额
 					let check = arr.indexOf('3') > -1;
 					if (check && arr.length >= 2) {

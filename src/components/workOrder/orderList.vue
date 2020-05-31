@@ -152,8 +152,8 @@
 							<el-button v-if='scope.row.status==1' type="text"  @click="finish(scope.$index, scope.row)">完工&nbsp;&nbsp;|</el-button>
 							<el-button v-if='scope.row.status==1||scope.row.status==2||scope.row.status==3||scope.row.status==4' type="text" @click="close(scope.$index, scope.row)">结算&nbsp;&nbsp;<i v-if='scope.row.status!=3'>|</i></el-button>
 							<el-button v-if='scope.row.status==4||scope.row.status==5' type="text"  @click="look(scope.$index, scope.row)">查看&nbsp;&nbsp;|</el-button>
-							<!-- <el-button v-if='scope.row.status==1||scope.row.status==3||scope.row.status==2' type="text"  @click="buyer(scope.$index, scope.row)">挂账&nbsp;&nbsp;|</el-button> -->
-							<el-button v-if='scope.row.status==1||scope.row.status==0||scope.row.status==2' type="text"  @click="set(scope.$index, scope.row)">编辑&nbsp;&nbsp;|</el-button>
+							<el-button v-if='scope.row.status==1||scope.row.status==3||scope.row.status==2' type="text"  @click="buyer(scope.$index, scope.row)">挂账&nbsp;&nbsp;|</el-button>
+							<el-button v-if='scope.row.status==1||scope.row.status==0' type="text"  @click="set(scope.$index, scope.row)">编辑&nbsp;&nbsp;|</el-button>
 							<el-button v-if='scope.row.status!=6&&scope.row.status!=3&&scope.row.status!=5' type="text"  @click="del(scope.$index, scope.row)">作废&nbsp;&nbsp;|</el-button>
 							<el-button v-if='scope.row.status!=3' type="text" @click="copy(scope.$index, scope.row)">复制</el-button>
 						</template>

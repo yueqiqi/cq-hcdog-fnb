@@ -239,7 +239,7 @@
 			<!-- 客户自带材料 -->
 			<b6 :dis='dis' :manOur='manOur4' :useType='useType' @children='children3'></b6>
 			<!-- 附加费用 -->
-			<!-- <b7 :dis='dis' :subjoin='subjoin' :useType='useType' @selectChange='selectChange' @priceChange='priceChange' @remarksChange='remarksChange'></b7> -->
+			<b7 :dis='dis' :subjoin='subjoin' :useType='useType' @selectChange='selectChange' @priceChange='priceChange' @remarksChange='remarksChange'></b7>
 			
 			<div class="b8">
 				<div class="d-flex" style="align-items: center;margin-left: 36px;">
@@ -690,7 +690,7 @@
 					// 保险到期时间
 					compulsoryInsureDeadline,
 					// 附加信息--Array  name:附加名称  price--附加费价格  remarks--备注
-					list:[],
+					list,
 					// 商品集合
 					laborOrderGoodsList,
 					
@@ -776,7 +776,7 @@
 					// 保险到期时间
 					compulsoryInsureDeadline,
 					// 附加信息--Array  name:附加名称  price--附加费价格  remarks--备注
-					list:[],
+					list,
 					// 商品集合
 					laborOrderGoodsList,
 					
