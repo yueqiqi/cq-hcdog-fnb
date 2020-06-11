@@ -65,7 +65,7 @@
 		<div class="d-flex" style="height: 60px;margin-left: 30px;">
 			<div style="width: 300px;"><el-input v-model="search" placeholder="请输入搜索内容..." @focus="searchShowClick" :disabled="dis"></el-input></div>
 
-			<div style="margin-left: 22px;"><el-button @click="searchShowClick" type="primary" :disabled="dis">选择服务/商品</el-button></div>
+			<div style="margin-left: 22px;"><el-button @click="searchShowClick" type="primary" :disabled="dis">搜索</el-button></div>
 			<div style="margin-left: 20px;margin-top: 14px;">
 				<font color="#808080">找不到项目？</font>
 				<el-button type="text" style="color: #409eff;" :disabled="dis" @click="openNs">新建服务</el-button>
@@ -82,15 +82,24 @@
 
 		<div style="margin-top: 20px;">
 			<div style="margin-left: 30px;"><div style="text-align: left;" class="font-big">快速选择开单项目</div></div>
+
+			<!-- <div class="vipBox d-flex">
+			<div v-if="dis==false" v-for="(item,index) in sCheck" :key='index' style="padding:0 10px;height: 40px;line-height: 40px;color: #fff;background:#b0b0b0;text-align: center;border-radius: 10px;margin-right: 10px;" @click="vipChange(item,index)" :class="{actives:vipBoxCur==index}">{{item.memberCardName}}</div>
+		</div> -->
 			<el-tabs v-model="vipBoxCur" type="card" @tab-click="vipChange" style="margin-top: 20px;">
 				<el-tab-pane v-for="(item, index) in sCheck" :key="index" :label="item.memberCardName" :name="item"></el-tab-pane>
 			</el-tabs>
+
+			<!-- <div style=""><hr /></div> -->
 		</div>
+
+		<!-- <el-button @click='showChecked'>点击</el-button> -->
+
 		<div style="width: 100%;margin-top: 20px;">
 			<div style="margin-left: 50px; " class="c-checkBoxs">
 				<el-checkbox-group @change="checkGroup" v-model="checkServer" style="width:100%;flex-wrap:wrap;display: flex;justify-content: left;">
 					<el-checkbox
-						@change="checked=>checkChange(checked, item)"
+						@change="checkChange(index, item)"
 						style="margin-top: 10px;"
 						v-for="(item, index) in fCheck"
 						:key="index"
@@ -122,6 +131,13 @@
 							<template>
 								<div>{{ item.name }}</div>
 								<div class="d-flex">
+									<!-- 2020-03-31 -->
+									<!-- <div class="discount">{{item.count}}折</div> -->
+
+									<!-- <div style="margin-left: 5px;color:#6F93FE">
+									¥
+									<span style="font-size: 18px;">{{item.price}}</span>
+								</div> -->
 									<div style="margin-left: 5px;">剩余{{ item.surplusCount }}次</div>
 								</div>
 							</template>
@@ -133,6 +149,14 @@
 								<div>{{ item.name }}</div>
 								<div style="margin-left: 5px;">剩余{{ item.surplusCount }}次</div>
 								<div class="d-flex">
+									<!-- 2020-03-31 -->
+									<!-- <div class="discount">{{item.surplusCount}}折</div>
+							
+								<div style="margin-left: 5px;color:#6F93FE">
+									¥
+									<span style="font-size: 18px;">{{item.price}}</span>
+								</div> -->
+									<!-- <div style="margin-left: 5px;">剩余{{item.count}}次</div> -->
 								</div>
 							</template>
 						</el-checkbox>
@@ -150,6 +174,7 @@
 			<div :style="{ position: 'relative' }">
 				<div class="end-img d-flex">
 					<div @click="showCar()" class="carAlert"><img src="../../assets/car.png" alt="" /></div>
+					<!-- <div class="icon" style="text-align: center;">{{dis==false?carList.length:fCheck.length }}</div> -->
 					<div class="icon" style="text-align: center;">{{ allCarNum }}</div>
 				</div>
 				<!-- 购物车弹窗 -->
@@ -206,7 +231,7 @@
 		</div>
 
 		<!-- 搜索框弹窗 -->
-<!-- 		<el-dialog :visible.sync="searchShow" width="800px" :close-on-click-modal="false" :lock-scroll="true">
+		<el-dialog :visible.sync="searchShow" width="800px" :close-on-click-modal="false" :lock-scroll="true">
 			<div style="padding-top: 15px;">
 				<el-row>
 					<el-col class="tabs" style="font-weight: bold;color: black;font-size: 18px;" v-for="(item, index) in tabTitle" :key="index" :span="8">
@@ -217,6 +242,7 @@
 			</div>
 			<div class="col" style="margin-top: 38px;">
 				<el-row>
+					<!-- 左边一二级菜单 -->
 					<el-col :span="5">
 						<div style="text-align: left;height: 400px;overflow-y: auto" class="grid-content bg-purple">
 							<el-menu class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose" v-for="(item, index) in searchList" :key="index">
@@ -231,6 +257,7 @@
 							</el-menu>
 						</div>
 					</el-col>
+					<!-- 中间已选择商品 -->
 					<el-col :span="14">
 						<div style="" class="grid-content bg-purple-light bm">
 							<el-row>
@@ -249,10 +276,11 @@
 							</el-table>
 						</div>
 					</el-col>
+					<!-- 右边删除 -->
 					<el-col :span="5">
 						<div v-for="(selected, index) in serverSelected" :key="index" style="text-align: center;" class="grid-content bg-purple">
 							<el-col style="margin-top: 10px;" :span="20">{{ selected.goodsName }}</el-col>
-							<el-col style="margin-top: 13px;" :span="4"><i @click="delSelected(selected.goodsCode,selected)" class="el-icon-close"></i></el-col>
+							<el-col style="margin-top: 13px;" :span="4"><i @click="delSelected(selected.goodsCode)" class="el-icon-close"></i></el-col>
 						</div>
 					</el-col>
 				</el-row>
@@ -261,7 +289,7 @@
 				<el-button @click="close">取 消</el-button>
 				<el-button type="primary" @click="onfirm">确 定</el-button>
 			</span>
-		</el-dialog> -->
+		</el-dialog>
 
 		<!-- 新建商品 -->
 		<newproduct :npIsShow="npIsShow" :searchList="options" @sendNp="sendNp" @saveNp="saveNp" @closeNp="closeNp"></newproduct>
@@ -271,7 +299,6 @@
 		<setCar :setCarshow="setCarshow" @closeCarAlert="closeCarAlert" @carConfirm="sendCarData"></setCar>
 		<!-- 使用他人会员卡 -->
 		<uservip :usevip="usevip" :vehicleId="vehicleId" @closeVipAlert="closeVipAlert" @vipConfirm="sendVipData"></uservip>
-		<chooseGoods ref='goods' @onfirm='onfirm'></chooseGoods>
 	</div>
 </template>
 
@@ -285,15 +312,12 @@ import setCar from '../Alert/setCar.vue';
 // 使用他人会员卡弹窗
 import uservip from '../Alert/useVip.vue';
 import carLists from '../../global/carList.js'
-// 添加商品
-import chooseGoods from '../Alert/chooseGoods.vue'
 export default {
 	components: {
 		newproduct,
 		newserve,
 		setCar,
-		uservip,
-		chooseGoods
+		uservip
 	},
 	data() {
 		return {
@@ -424,9 +448,15 @@ export default {
 			});
 			return count;
 		},
+		// carList9(){
+		// 	return this.$store.state.carList
+		// }
+		// name() {
+		// 	return this.data
+		// }
 	},
 
-async	created() {
+	created() {
 		this.getBrand();
 		this.merchantCode = this.$route.query.merchantCode;
 		this.useType = this.$route.query.type;
@@ -439,7 +469,7 @@ async	created() {
 		}
 		if (this.$route.query.type == 'look') {
 			let copy = '';
-		await	this.getLookList(copy);
+			this.getLookList(copy);
 			this.dis = true;
 			this.carNone = 'none';
 			this.showInput = true;
@@ -450,11 +480,11 @@ async	created() {
 			}, 2800);
 		} else if (this.$route.query.type == 'copy' || this.$route.query.type == 'set') {
 			let copy = 'copy';
-		await	this.getLookList(copy);
+			this.getLookList(copy);
 			this.dis = false;
 			this.carNone = 'hidden';
 			this.showInput = true;
-		await	this.getFcheck();
+			this.getFcheck();
 			setTimeout(() => {
 				let arr = [];
 				let arr2 = [];
@@ -518,7 +548,7 @@ async	created() {
 				}
 
 				// 弹框选中的值
-				this.$refs.goods.selectedGoods = this.uniqs(arr4);
+				this.choosedAlert = this.uniqs(arr4);
 				this.fCheck = this.fCheck.concat(this.uniqs(arr4));
 				this.checkServer = arr.concat(this.uniqs(arr4));
 				this.checkServer2 = arr2.concat(arr3);
@@ -534,9 +564,6 @@ async	created() {
 		}
 	},
 	methods: {
-		
-		
-		
 		//新建客户/车牌号
 		addNew(plateNumber, phone, name) {
 			var carType2 = '';
@@ -683,8 +710,8 @@ async	created() {
 		},
 
 
-async getOther(condition){
-await	this.$http
+getOther(condition){
+	this.$http
 		.get('/LaborFastOrder/findVipGoods', {
 			merchantCode: this.merchantCode,
 			condition
@@ -812,8 +839,8 @@ await	this.$http
 		/**
 		 * 获取快捷下单商品列表
 		 */
-	async	getFcheck() {
-		await	this.$http
+		getFcheck() {
+			this.$http
 				.get('/LaborGoods/findFastOrderGoods', {
 					merchantCode: this.merchantCode
 				})
@@ -823,8 +850,7 @@ await	this.$http
 							item.goodsCode = item.code;
 							item.goodsCome = 3;
 							item.goodsVipId = null;
-							item.num = 1;
-							item.goodsCount = item.num;
+							item.goodsCount = 1;
 						});
 						this.fCheck = res.data;
 					}
@@ -1095,6 +1121,7 @@ await	this.$http
 							confirmButtonText: '确定'
 						});
 					} else {
+					console.log(this.customerCodeOther,this.customerPhoneOther,this.customerNameOther)
 						this.$store.commit('list',this.carList)
 						this.$router.push({
 							path: '/quickOrderBill',
@@ -1159,9 +1186,8 @@ await	this.$http
 		 * 搜索框弹窗
 		 */
 		searchShowClick() {
-			// this.searchShow = true;
-			// this.getTree('S01');
-			this.$refs.goods.popShopServeVisible=true
+			this.searchShow = true;
+			this.getTree('S01');
 		},
 
 		/**
@@ -1211,6 +1237,7 @@ await	this.$http
 					oneCategoryCode
 				})
 				.then(res => {
+					console.log('请求弹窗树状结果', res);
 					if (res.code == '10000') {
 						this.searchList = res.data;
 						res.data.map(item => {
@@ -1230,6 +1257,8 @@ await	this.$http
 							});
 							item.children = item.mapList;
 						});
+
+						// console.log('%c商品模板','color:#70ff57;font-size:20px;font-weight:bold',this.options)
 					}
 				});
 		},
@@ -1254,6 +1283,7 @@ await	this.$http
 		// ====================================================================================================================
 		//tab选项改变
 		tabChangess(e) {
+			console.log('选中的选项', e);
 			this.cur = e;
 			let oneCategoryCode = 'S01';
 			if (e == 0) {
@@ -1267,27 +1297,33 @@ await	this.$http
 		// ====================================================================================================================
 
 		// 删除已选择商品
-		delSelected(id,val) {
+		delSelected(val) {
 			let idx;
 			this.serverList.map((item, index) => {
-				if (id == item.goodsCode) {
+				if (val == item.goodsCode) {
 					idx = index;
 				}
 			});
-			this.$refs.multipleTable.toggleRowSelection(val,false)
+			this.$refs.multipleTable.toggleRowSelection(this.serverList[idx], false);
+			//fcheck删除
 			this.fCheck.map((item, ix) => {
 				if (this.serverList[idx] == item) {
 					this.fCheck.splice(ix, 1);
 				}
 			});
-			this.checkServer.map((item,ix) => {
+
+			// 购物车删除
+			this.carList.map((item, i) => {
+				console.log('删除购物车');
 				if (this.serverList[idx] == item) {
-					this.checkServer.splice(ix, 1);
+					console.log('删除购物车下标', i, idx);
+					this.carList.splice(i, 1);
 				}
-			})
+			});
 		},
 		// 勾选商品
 		serverChecked(e) {
+			console.log('勾选选项', e);
 			this.serverSelected = e;
 		},
 		// 选中二级分类
@@ -1314,36 +1350,45 @@ await	this.$http
 		},
 
 		// 确定按钮
-		onfirm(val) {
-			this.$refs.goods.popShopServeVisible=false
-			// this.searchShow = false;
-			// this.serverSelected.map(item => {
-			// 	item.goodsCome = 3;
-			// 	item.goodsCount = 1;
-			// 	item.num = item.goodsCount;
-			// });
-			val.map((item, idx) => {
+		onfirm() {
+			// console.log('搜错弹窗最后确认按钮',this.serverSelected)
+			this.searchShow = false;
+			this.serverSelected.map(item => {
+				item.goodsCome = 3;
+				item.goodsCount = 1;
+				item.num = item.goodsCount;
+			});
+
+			this.serverSelected.map((item, idx) => {
 				this.fCheck.map((item2, idx2) => {
 					if (item.goodsName == item2.goodsName) {
 						this.fCheck.splice(idx2, 1);
 					}
 				});
 			});
-			this.fCheck = this.fCheck.concat(val);
-			val.map((item, idx) => {
+
+			this.fCheck = this.fCheck.concat(this.serverSelected);
+
+			this.serverSelected.map((item, idx) => {
 				this.checkServer.map((item2, idx2) => {
 					if (item.goodsName == item2.goodsName) {
 						this.checkServer.splice(idx2, 1);
 					}
 				});
 			});
-			this.checkServer = this.checkServer.concat(val);
+			this.checkServer = this.checkServer.concat(this.serverSelected);
+
 			this.carList = this.deWeight(this.checkServer);
 		},
+
 		// 打开弹窗
-		handleOpen(e) {},
+		handleOpen(e) {
+			console.log('打开二级列表', e);
+		},
 		// 关闭弹窗
-		handleClose(e) {},
+		handleClose(e) {
+			console.log('关闭二级列表', e);
+		},
 
 		/**
 		 * 购物车
@@ -1413,7 +1458,12 @@ await	this.$http
 				}
 			});
 			//弹窗中删除
-			this.$refs.goods.DelselectedGoods(row)
+			this.$refs.multipleTable.selection.map((item, idx) => {
+				if (row == item) {
+					console.log('删除', row.goodsName, idx);
+					this.$refs.multipleTable.toggleRowSelection(item, false);
+				}
+			});
 		},
 		// 全部清空
 		clearAll(e) {
@@ -1422,7 +1472,7 @@ await	this.$http
 			this.checkServer2 = [];
 			this.carList1 = [];
 			this.carList2 = [];
-			this.$refs.goods.selectedGoods=[]
+			this.$refs.multipleTable.clearSelection();
 		},
 		// 关闭购物车
 		closeCar() {
@@ -1430,22 +1480,51 @@ await	this.$http
 		},
 		// 打开购物车
 		showCar() {
+			console.log('打开购物车弹窗');
 			this.isCarShow = true;
 		},
 		/**
 		 * 多选框
 		 */
-		checkGroup(e) {},
-		checkGroup2(e) {},
-		checkChange(isChecked, item) {
-			console.log('选择的商品自带商品', isChecked,item);
-			this.$refs.goods.selectedClick(isChecked,item)
+		checkGroup(e) {
+			// console.log('差大城市',e);
+		},
+		checkGroup2(e) {
+			// console.log('差大城市',e);
+		},
+
+		showChecked() {
+			console.log('展示的', this.checkServer);
+		},
+
+		checkChange(e, item) {
+			item.num = 1;
+			item.goodsCount = item.num;
+
+			// console.log('选择的自带商品1',this.checkServer)
+
+			// let arr=this.checkServer
+			let arr = this.uniqs(this.checkServer);
+			let endArr = [];
+			arr.map(item => {
+				endArr.push(item);
+			});
+			// this.carList1=this.carList1.concat(endArr)
+			console.log('选择的商品自带商品', this.carList1, this.carList2);
 			this.carList = this.checkServer.concat(this.checkServer2);
 		},
 
 		//多选框2
 		checkChange2(e, item) {
 			item.num = 1;
+			let arr = this.deWeight(this.checkServer2);
+
+			let endArr = [];
+			arr.map(item => {
+				endArr.push(item);
+			});
+			// this.carList2=this.carList2.concat(endArr)
+			console.log('选择的会员卡商品', endArr);
 			this.carList = this.checkServer2.concat(this.checkServer);
 		},
 
@@ -1462,6 +1541,8 @@ await	this.$http
 			this.state = state;
 			this.showInput = true;
 			this.usevip = false;
+			// this.customerCode = customerCode;
+			console.log('他人会员卡',customerCode,state,state.split('/')[0])
 			this.customerCodeOther =customerCode||''
 			this.customerNameOther = state.split('/')[0]||''
 			this.customerPhoneOther = state.split('/')[1]||''
@@ -1495,6 +1576,7 @@ delObj(condition){
 			condition
 		})
 		.then(res => {
+			console.log('请求输入车牌号结果', res.data.vehicleId, res);
 			if (res.code == '10000') {
 				//车主code
 				this.customerCode = res.data.customerCode;
@@ -1542,8 +1624,10 @@ delObj(condition){
 							arr3.push(item);
 						}
 					});
+					// console.log('%c自己会员卡','color:#70ff57;font-size:20px;font-weight:bold',this.sCheck)
 					this.sCheck = this.deWeight(arr).concat(this.deWeight(arr2).concat(this.deWeight(arr3)));
 				}
+				// this
 			} else {
 				alert(res.message);
 			}
@@ -1605,6 +1689,7 @@ delObj(condition){
 		},
 
 		chCar(val) {
+			console.log('选择品牌后的值', val);
 			if (val != '') {
 				this.brandId = val.split('/')[0];
 			}
@@ -1749,6 +1834,17 @@ delObj(condition){
 			}
 			return newAry;
 		},
+
+		deWeight2(arry) {
+			let newAry = [];
+			for (let i = 0; i < arry.length; i++) {
+				if (newAry.indexOf(arry[i].goodsCode) === -1) {
+					newAry.push(arry[i]);
+				}
+			}
+			return newAry;
+		},
+
 		uniqs(array) {
 			let temp = []; //一个新的临时数组
 			for (let i = 0; i < array.length; i++) {
@@ -1891,13 +1987,13 @@ delObj(condition){
 	background-color: #409eff;
 	font-size: 14px;
 }
-.carTable /deep/.el-table__row,
+/deep/.el-table__row,
 /deep/.el-table__footer-wrapper tbody td,
 /deep/.el-table__header-wrapper tbody td {
 	background: #304156 !important;
 	color: #fff;
 }
-.carTable /deep/ .el-table tbody tr:hover > td {
+/deep/ .el-table tbody tr:hover > td {
 	background: #304156 !important;
 	color: #fff;
 }

@@ -1,10 +1,15 @@
 <!-- 组件说明 -->
 <template>
 	<div class="">
-		<el-button @click.once='onceClick'>只能点击一次</el-button>
+		<chooseGoods></chooseGoods>
+		<el-button @click="str='向子组件传值'">改变子组件值</el-button>
+		<child :str='str' ref='child'></child>
+		<el-button @click='changeChild'>调用子组件方法</el-button>
+		
+		<el-button @click.once="onceClick">只能点击一次</el-button>
 		<h1>demo</h1>
-		<el-button @click='can'>生成自适应海报</el-button>
-		<canvas id='myCanvas' width='' height=''></canvas>
+		<el-button @click="can">生成自适应海报</el-button>
+		<canvas id="myCanvas" width="" height=""></canvas>
 		<el-button @click="fil">过滤null</el-button>
 		<!-- 异步函数执行 -->
 		<el-button @click="asyncs">异步函数调用</el-button>
@@ -69,21 +74,59 @@
 		<div :style="{ color: form.fontColor, fontSize: form.fontSize + 'px' }">这是一段字体</div>
 
 		<el-button @click="closeBag">闭包</el-button>
+		<hr />
+		<el-button @click="arrChange(1)">数组一</el-button>
+		<el-button @click="arrChange(2)">数组二</el-button>
+		<hr />
+		<el-table :data="arr" style="width: 100%;margin-bottom: 20px;">
+			<el-table-column prop="id"></el-table-column>
+			<el-table-column prop="name"></el-table-column>
+			<el-table-column fixed="right" label="操作" width="120">
+				<template slot-scope="scope">
+					<el-button @click.native.prevent="deleteRow(scope.$index, arr)" type="text" size="small">移除</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+		<el-table :data="arr2" style="width: 100%;margin-bottom: 20px;">
+			<el-table-column prop="id"></el-table-column>
+			<el-table-column prop="name"></el-table-column>
+			<el-table-column fixed="right" label="操作" width="120">
+				<template slot-scope="scope">
+					<el-button @click.native.prevent="deleteRow(scope.$index, arr2)" type="text" size="small">移除</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+		<el-table :data="Allarr" style="width: 100%;margin-bottom: 20px;">
+			<el-table-column prop="id"></el-table-column>
+			<el-table-column prop="name"></el-table-column>
+			<el-table-column fixed="right" label="操作" width="120">
+				<template slot-scope="scope">
+					<el-button @click.native.prevent="deleteRow(scope.$index, Allarr)" type="text" size="small">移除</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
 	</div>
 </template>
 
 <script>
 import provice from './Alert/province.vue';
+import child from './demo2.vue';
+import chooseGoods from './Alert/chooseGoods.vue';
 export default {
 	components: {
-		provice
+		provice,
+		child,
+		chooseGoods
 	},
 	data() {
 		return {
-			img:'../assets/wx.png',
-			code:'../assets/car.png',
-			title1:'这是标题这是标题这是标题',
-			title2:'这是副标题这是副标题这是副标题这是副标题',
+			str:'一串文字',
+			arr: [],
+			arr2: [],
+			img: '../assets/wx.png',
+			code: '../assets/car.png',
+			title1: '这是标题这是标题这是标题',
+			title2: '这是副标题这是副标题这是副标题这是副标题',
 			filter: {
 				name: null,
 				asd: [
@@ -180,25 +223,44 @@ export default {
 				{ name: '小明', phone: '15528034', carNUm: '川J12625' },
 				{ name: '小红', phone: '1008611', carNUm: '川A3C625' }
 			],
+
 			value: null,
 			options: [{ value: 1, label: '1-1', children: [{ value: 2, label: '2-1', children: [{ value: 3, label: '3-1' }] }] }]
 		};
 	},
-	computed: {},
+	computed: {
+		Allarr() {
+			return this.arr.concat(this.arr2);
+		}
+	},
 	methods: {
-		onceClick(){
-			console.log('按钮只能点击一次')
+		changeChild(){
+			this.$refs.child.look()
+			console.log(this.$refs.child.look)
 		},
-		can(){
-			var myCanvas=document.getElementById('myCanvas')
+		deleteRow(index, rows) {
+			rows.splice(index, 1);
+		},
+		arrChange(val) {
+			if (val == 1) {
+				this.arr.push({ id: Math.random() * 10, name: (Math.round(Math.random() * 20901) + 19968).toString(16) });
+			} else {
+				this.arr2.push({ id: Math.random() * 20, name: (Math.round(Math.random() * 20901) + 19968).toString(16) });
+			}
+		},
+		onceClick() {
+			console.log('按钮只能点击一次');
+		},
+		can() {
+			var myCanvas = document.getElementById('myCanvas');
 			var ctx = myCanvas.getContext('2d');
 			let img = new Image();
-			var that=this
-			img.src = that.img
-			img.onload=()=>{
-				ctx.drawImage(img,0,0)
-				ctx.save()
-			}
+			var that = this;
+			img.src = that.img;
+			img.onload = () => {
+				ctx.drawImage(img, 0, 0);
+				ctx.save();
+			};
 		},
 		fil() {
 			// Object.keys(this.filter).forEach((key)=>{
@@ -531,29 +593,76 @@ export default {
 			// for(var i=0;i>-9;i++){
 			// console.log( '123',this.$untils.getTableData('31000001',1,10))
 			// }
-		}
+		},
+			nim(){
+				return new Promise(async(resolve, reject) => {
+				    try {
+				        let res = await this.$api.list({ merchantCode: 31000001, pageNo: 1, pageSize: 10 })
+				        console.log('请求结果11111', res)
+				        console.log(11112)
+				        console.log(22223)
+				        resolve(res)
+				    } catch (error) {
+				        reject(error)
+				    }
+				})
+			},
+		async	nim2(){
+				let res = await this.$api.list({ merchantCode: 31000001, pageNo: 1, pageSize: 10 })
+				console.log('请求结果11111', res)
+				console.log(11112)
+				console.log(22223)
+			},
+			nm(){
+				
+			(function(){
+				var num = 1
+				 function a(){
+					 console.log(num)
+				 }
+				 function b(){
+					 console.log(num)
+				 }
+				 a()
+				 b()
+			})()
+			}
 	},
 	mounted() {},
-	created() {
-		this.$api.list({ merchantCode: 31000001, pageNo: 1, pageSize: 10 }).then(res => {
-			console.log('请求结果1111111', res);
-		});
+async	created() {
+		// this.$api.list({ merchantCode: 31000001, pageNo: 1, pageSize: 10 }).then(res => {
+		// 	console.log('请求结果1111111', res);
+		// 	console.log(111)
+		// });
+		// console.log(2222)
+		// this.nim().then(res => {
+		// 	console.log(res)
+			
+		// })
+		console.log(3333);
+	await this.nim2()
+		// this.nim2()
+		// let that =this
+	console.log(555)
+			// console.log(555)
+		
+		// this.nm()
 		// var that=this
 
-		this.$http
-			.get('/merchantAssemble/getAssemble', {
-				merchantCode: this.merchantCode
-			})
-			.then(res => {
-				console.log('获取拼团图片', res);
-				if (res.code === '10000') {
-					this.assembleImgList = res.data.assembleImgList;
-					this.assembleImgLists = res.data.shareImgList;
-				}
-				if (this.$route.query.clickStatus == 3) {
-					this.sets = true;
-				}
-			});
+		// this.$http
+		// 	.get('/merchantAssemble/getAssemble', {
+		// 		merchantCode: this.merchantCode
+		// 	})
+		// 	.then(res => {
+		// 		console.log('获取拼团图片', res);
+		// 		if (res.code === '10000') {
+		// 			this.assembleImgList = res.data.assembleImgList;
+		// 			this.assembleImgLists = res.data.shareImgList;
+		// 		}
+		// 		if (this.$route.query.clickStatus == 3) {
+		// 			this.sets = true;
+		// 		}
+		// 	});
 	},
 	beforeMount() {}, //生命周期 - 挂载之前
 	beforeUpdate() {}, //生命周期 - 更新之前

@@ -210,6 +210,7 @@ export default {
 	},
 	data() {
 		return {
+			seq:'',//1-先notice-再code
 			gp:'',
 			onceClick:false,//设置按钮只能点击一次
 			//二维码弹窗价格
@@ -463,10 +464,11 @@ export default {
 						});
 						}else{
 							this.notice=false
+							this.getCode(); //获取二维码
 						}
 					this.onceClick=false
 					} else {
-						alert(res.message);
+						alert('订单',res.message);
 					}
 				});
 		},
@@ -534,7 +536,7 @@ base64ImgtoFile(dataurl, filename = 'file') {
 			let b3 = false; // false codeIsShow
 			let that = this;
 			this.gp=1
-			if (this.checkedRadio == '3' || this.checkedRadio == '4') {
+			if (this.checkedRadio == '3') {
 				this.gp=0
 				this.payType = this.checkedRadio; //单个
 			await	this.getClose(this.payType, '1')
@@ -580,7 +582,7 @@ base64ImgtoFile(dataurl, filename = 'file') {
 					if (check && arr.length >= 2) {
 						//判断输入类型
 						that.payType = arr.join(',');
-					await	that.getCode(); //获取二维码
+					
 						b2 = true; //打开是否收款弹窗
 					} else if (check == false && arr.length >= 2) {
 						this.gp=1
@@ -643,7 +645,6 @@ base64ImgtoFile(dataurl, filename = 'file') {
 		rec(val) {
 			// this.gp=1
 			this.onceClick=true
-			console.log('支付方式', this.payType);
 			this.getClose(this.payType, '1');
 			this.notice = false;
 			this.buyoncredit = 0;
@@ -671,7 +672,6 @@ base64ImgtoFile(dataurl, filename = 'file') {
 
 		// 二维码发送选择
 		mesChange(val) {
-			console.log(val);
 		},
 
 		// 支付方式

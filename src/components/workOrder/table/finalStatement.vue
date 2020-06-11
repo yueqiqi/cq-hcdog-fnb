@@ -227,7 +227,6 @@ created() {
 	this.laborOrder=this.$route.params.data
 	console.log(this.laborOrder)
 	let list=this.$route.params.list
-	console.log('%c额就是那','color:#70ff57;font-size:20px;font-weight:bold',list)
 	list.map(item => {
 		if(item.type==1){
 			this.t2.push(item)
@@ -246,7 +245,6 @@ created() {
 	// }
 	
 	this.type=this.$route.params.type
-	console.log('%c单类型','color:#70ff57;font-size:20px;font-weight:bold',this.type)
 	var mydate = new Date();  
 	var onedate = mydate.toLocaleString('chinese', { hour12: false }); 
 	this.printTime=onedate.replace(/\//g, '-')
