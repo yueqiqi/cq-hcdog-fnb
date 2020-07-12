@@ -4,9 +4,6 @@
 		<el-dialog title="" :close-on-click-modal='false'  :visible.sync="vipPop" width="80%" @close='close' :show-close='false'>
 			<div class='font-big' style="line-height: 60px;">会员卡内项目</div>
 			<div   class="d-flex" id="d1">
-				<!-- <div v-for="(item,index) in vipList" style="padding:0 10px;height: 40px;line-height: 40px;color: #fff;background:#b0b0b0;text-align: center;border-radius: 10px;margin-right: 10px;" :key='index' @click="vipChange(item,index)" :class="{active2:cur2==index}">		
-					{{item.memberCardName}}
-				</div> -->
 				<el-tabs v-model="cur2" type="card" 	@tab-click="vipChange">
 				  <el-tab-pane
 				    v-for="(item,index) in vipList"
@@ -31,17 +28,11 @@
 			
 			<el-row >
 				<el-col :span="18">
-					<!-- <div style="margin-top: 20px;">
-						<el-select v-model="serverType" placeholder="请选择服务类型" @change="optionsChange">
-						   <el-option v-for="item in options" :key="item" :label="item" :value="item">
-						  </el-option>
-						</el-select>
-					</div> -->
 					
 					<div style="margin-top: 20px;">
 						<el-table ref="multipleTable" :header-cell-style="{color:'#333',fontSize:'14px',background:'#f2f2f2'}" :data="list" style="width: 100%;" @selection-change="selectChange" :row-key="getRowKeys">
 							<el-table-column prop="goodsName" label="服务名称"></el-table-column>
-							<el-table-column prop="hour" label="所需工时"></el-table-column>
+							<el-table-column prop="serviceMinutes" label="所需工时"></el-table-column>
 							<el-table-column prop="price" label="工时单价(个/元)"></el-table-column>
 							<el-table-column prop="price" label="单价"></el-table-column>
 							<el-table-column type="selection" prop="money" label="操作" :reserve-selection="true">
@@ -114,7 +105,7 @@
 		},
 		methods: {
 			getRowKeys(row) {
-			    return row.vips;
+			    return Number(row.vips);
 			},
 			
 			
@@ -124,22 +115,94 @@
 			},
 			// 确定按钮
 			confirm(){
-				this.chooseList.map(item => {
-					item.goodsCount=1
-					item.num=item.goodsCount
+				// let arr =[{
+				// 	brandName: null
+				// 	cardBalance: null
+				// 	code: "31000001S0101000029"
+				// 	customerMemberCardId: "107"
+				// 	goodsCode: "31000001S0101000029"
+				// 	goodsCome: 3
+				// 	goodsCount: 1
+				// 	goodsDiscount: null
+				// 	goodsName: "普通打蜡(5座)"
+				// 	isGift: 0
+				// 	mapList:[]
+				// 	memberCardGoodsDiscount: null
+				// 	memberCardGoodsPrice: null
+				// 	memberCardName: "普通打蜡(5座)"
+				// 	memberCardType: "0"
+				// 	price: "80.00"
+				// 	serviceDiscount: null
+				// 	serviceMinutes: "15"
+				// 	serviceTime: "15"
+				// 	specification: null
+				// 	subtotalMoney: 80
+				// 	surplusCount: 999
+				// }
+				// {
+					// brandName: null
+					// cardBalance: null
+					// code: "31000001S0101000029"
+					// customerMemberCardId: "329"
+					// goodsCode: "31000001S0101000029"
+					// goodsCome: 1
+					// goodsCount: 1
+					// goodsDiscount: "1"
+					// goodsName: "普通打蜡(5座)"
+					// goodsVipId: "329"
+					// isGift: 0
+					// mapList: Array(0)
+					// memberCardGoodsDiscount: null
+					// memberCardGoodsPrice: null
+					// memberCardName: "默认卡"
+					// memberCardType: "4"
+					// price: "80.00"
+					// serviceDiscount: "1"
+					// serviceMinutes: "15"
+					// serviceTime: "15"
+					// specification: null
+					// subtotalMoney: 80
+					// surplusCount: "3"
+				// }
+				// ]
+				// this.chooseList.map(item => {
+				// 	// item.cardBalance=null
+				// 	// item.specification=item.specification||null
+				// 	// item.serviceDiscount=item.serviceDiscount||null
+				// 	// item.brandName=item.brandName||null
+				// 	// item.serviceMinutes=item.serviceMinutes||null
+				// 	// item.goodsCome = 3;
+				// 	// item.num = 1;
+				// 	// item.isGift=0
+				// 	// item.goodsCount = item.num;
+				// 	// item.memberCardType=1
+				// 	// item.surplusCount= item.surplusCount||0
+				// 	// // item.remarks=''
+				// 	// item.subtotalMoney = item.price;
+				// 	// item.mapList = [];
+				// 	// item.code=item.goodsCode
+				// 	// item.goodsDiscount=1
+				// 	// item.customerMemberCardId=item.goodsComeVipId
+				// 	// item.goodsVipId=item.goodsComeVipId
+				// 	item.goodsName = item.name;
+				// 	item.goodsCount = 1;
+				// 	item.mapList = [];
+				// 	item.goodsCome = 1;
+				// 	item.isGift = 0;
+				// 	item.goodsVipId = item.goodsComeVipId
+				// 	item.specification = item.specification;
+				// 	item.brandName = item.brandName;
+				// 	item.serviceMinutes = item.serviceMinutes;
+				// })
+				let arr =this.chooseList
+				console.log(this.chooseList)
+				this.$nextTick(()=>{
+					this.$emit('confirmVipPop',arr)
 				})
-				console.log('选择的')
-				this.$emit('confirmVipPop',this.chooseList)
 			},
-			
-			
-			
-			
-			
 			// 删除已选择的商品
 			delSelected(val){
 				let idx
-				console.log('删除商品下表',val)
 				this.list.map((item,index) => {
 					if(val == item.goodsCode){
 						idx=index
@@ -159,8 +222,23 @@
 					customerCode:'3100000100106'
 				})
 				.then(res=>{
-					 console.log('%c请求会员卡内商品结果','color:red;font-size:20px',res)
 					 if(res.code == '10000'){
+						 res.data.specialService.map(item => {
+							 item.num = 1
+							 item.goodsCount = item.num;
+						 })
+						 res.data.specialGoods.map(item => {
+							item.num = 1
+							item.goodsCount = item.num;
+						})
+						res.data.freeService.map(item => {
+							item.num = 1
+							item.goodsCount = item.num;
+						})
+						res.data.freeGoods.map(item => {
+							item.num = 1
+							item.goodsCount = item.num;
+						})
 							this.otherVipList=res.data
 					}else{
 						 alert(res.message)
@@ -171,7 +249,6 @@
 			 * @param {Object} 会员卡改变
 			 */
 			vipChange(val){
-				console.log('选中行下把你',val)
 				this.cur=-1
 				this.getList(val.name.customerMemberCardId)
 				this.cur2=val.index
@@ -212,54 +289,107 @@
 				})
 				arr4 = this.otherVipList.freeGoods
 				// 特殊优惠--服务下拉框
-				options1=this.otherVipList.specialServiceClass
-				// 特殊优惠--商品下拉框
-				options2 = this.otherVipList.specialGoodsClass
-				// 赠送--服务 下拉框
-				options3 = this.otherVipList.freeServiceClass
-				// 赠送--商品 下拉框
-				options4 = this.otherVipList.freeGoodsClass
+				// options1=this.otherVipList.specialServiceClass
+				// // 特殊优惠--商品下拉框
+				// options2 = this.otherVipList.specialGoodsClass
+				// // 赠送--服务 下拉框
+				// options3 = this.otherVipList.freeServiceClass
+				// // 赠送--商品 下拉框
+				// options4 = this.otherVipList.freeGoodsClass
 				
 				if(e==0){
 					arr1.map(item => {
 						item.choose='特殊优惠项目--服务'
+						item.goodsName = item.name;
+						// item.num = 1
+						// item.goodsCount = item.num;
+						item.mapList = [];
+						item.goodsCome = 2;
+						item.isGift = 0;
+						item.goodsVipId = item.goodsComeVipId
+						item.specification = item.specification;
+						item.brandName = item.brandName;
+						item.serviceMinutes = item.serviceMinutes;
+						item.subtotalMoney=item.price
+						item.remarks=''
 					})
 					this.list = arr1
-					this.options=options1
 					this.listType='specialService'
 				}else if(e==1){
 					arr2.map(item => {
 						item.choose='特殊优惠项目--商品'
+						item.goodsName = item.name;
+						// item.num = 1
+						// item.goodsCount = item.num;
+						item.mapList = [];
+						item.goodsCome = 2;
+						item.isGift = 0;
+						item.goodsVipId = item.goodsComeVipId
+						item.specification = item.specification;
+						item.brandName = item.brandName;
+						item.serviceMinutes = item.serviceMinutes;
+						item.subtotalMoney=item.price
 					})
 					this.list = arr2
-					this.options=options2
 					this.listType='specialGoods'
 				}else if(e == 2){
 					arr3.map(item => {
 						item.choose='赠送--服务'
+						item.goodsName = item.name;
+						// item.goodsCount = 1;
+						item.mapList = [];
+						item.goodsCome = 2;
+						item.isGift = 0;
+						item.goodsVipId = item.goodsComeVipId
+						item.specification = item.specification;
+						item.brandName = item.brandName;
+						item.serviceMinutes = item.serviceMinutes;
+						item.subtotalMoney=item.price
 					})
 					this.list = arr3
-					this.options=options3
 					this.listType='freeService'
 				}else if(e == 3){
 					arr1.map(item => {
 						item.choose='赠送--商品'
+						item.goodsName = item.name;
+						// item.goodsCount = 1;
+						item.mapList = [];
+						item.goodsCome = 2;
+						item.isGift = 0;
+						item.goodsVipId = item.goodsComeVipId
+						item.specification = item.specification;
+						item.brandName = item.brandName;
+						item.serviceMinutes = item.serviceMinutes;
+						item.subtotalMoney=item.price
 					})
 					this.list = arr4
-					this.options=options4
+					let that =this
+					// this.$nextTick(()=>{
+					// that.list.map(item=>{
+					// 	item.goodsName = item.name;
+					// 	item.goodsCount = 1;
+					// 	item.mapList = [];
+					// 	item.goodsCome = 2;
+					// 	item.isGift = 0;
+					// 	item.goodsVipId = item.goodsComeVipId
+					// 	item.specification = item.specification;
+					// 	item.brandName = item.brandName;
+					// 	item.serviceMinutes = item.serviceMinutes;
+					// 	item.subtotalMoney=item.price
+					// })
+						
+					// })
 					this.listType='freeGoods'
 				}
 				
 			},
 		// 勾选的选项
 		selectChange(val){
-			console.log('勾选的val',val)
 			this.chooseList=val
 		},
 
 
 optionsChange(val){
-	console.log('’=选择的下拉框',val)
 	let arr1=[]
 	let arr2=[]
 	let arr3=[]

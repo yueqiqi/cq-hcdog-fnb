@@ -150,8 +150,8 @@
 					<el-table-column prop="name" label="操作" width="244" fixed="right" style="font-size: 14px;">
 						<template slot-scope="scope">
 							<el-button v-if='scope.row.status==1' type="text"  @click="finish(scope.$index, scope.row)">完工&nbsp;&nbsp;|</el-button>
-							<el-button v-if='scope.row.status==1||scope.row.status==2||scope.row.status==3||scope.row.status==4' type="text" @click="close(scope.$index, scope.row)">结算&nbsp;&nbsp;<i v-if='scope.row.status!=3'>|</i></el-button>
-							<el-button v-if='scope.row.status==4||scope.row.status==5' type="text"  @click="look(scope.$index, scope.row)">查看&nbsp;&nbsp;|</el-button>
+							<el-button v-if='scope.row.status==1||scope.row.status==2||scope.row.status==3||scope.row.status==4' type="text" @click="close(scope.$index, scope.row)">结算&nbsp;&nbsp;|</el-button>
+							<el-button v-if='scope.row.status==5' type="text"  @click="look(scope.$index, scope.row)">查看&nbsp;&nbsp;|</el-button>
 							<el-button v-if='scope.row.status==3' type="text"  @click="buyer(scope.$index, scope.row)">挂账&nbsp;&nbsp;</el-button>
 							<el-button v-if='scope.row.status==1||scope.row.status==0' type="text"  @click="set(scope.$index, scope.row)">编辑&nbsp;&nbsp;|</el-button>
 							<el-button v-if='scope.row.status!=6&&scope.row.status!=3&&scope.row.status!=5&&scope.row.status!=4' type="text"  @click="del(scope.$index, scope.row)">作废&nbsp;&nbsp;|</el-button>
@@ -176,7 +176,7 @@
 			</div>
 		</div>
 		<finish :customerPhone='datas.customerPhone' :plateNumber='datas.plateNumber' :merchantName='datas.merchantName' :merchantPhone='datas.merchantPhone' :isShowFinish='isShowFinish' :orderCode='datas.orderCode' @closeCompAlert='closeCompAlert' @compConfirm='compConfirm' @noSend='noSend'></finish>
-		<buyer :carNumber="carNumber" :company='company' :buyerAlert="buyerAlert" @closeBuyerAlert="closeBuyerAlert" @buyerConfirm="sendBuyerData"></buyer>
+		<buyer :carNumber="carNumber"  :buyerAlert="buyerAlert" @closeBuyerAlert="closeBuyerAlert" @buyerConfirm="sendBuyerData"></buyer>
 	</div>
 </template>
 
@@ -198,6 +198,7 @@ export default {
 	},
 	data() {
 		return {
+			personage:[],
 			buyerWorkOrderCode:'',
 			company:[],//挂账单位列表
 			editableTabsValue:'全部',
@@ -597,7 +598,7 @@ export default {
 		 */
 		close(index,row) {
 			console.log('结算',row)
-			if(row.status==3){
+			if(row.status==3||row.status==4){
 				this.$router.push({
 					path:'/financialClose',
 					query:{
@@ -623,39 +624,23 @@ export default {
 		 * 挂账
 		 */
 		buyer(index,row) {
-			
-			// console.log('挂账',index,row);
 			this.buyerAlert=true
 			this.carNumber=row.plateNumber
 			//挂账工单编号
 			this.buyerWorkOrderCode=row.workOrderCode
 			//挂账工单序号
 			this.rowIdx=index
-			this.getCompany()
-		},
-		getCompany(){//获取挂账单位列表
-			this.$http.get('/onAccount/onAccountList',{
-				merChantCode:this.merchantCode,
-				pageNum:1,
-				pageSize:999,
-				condition:'',
-			}).then(res => {
-				this.company=res.data
-			})
 		},
 		// 确定挂账
 		sendBuyerData(val){
 					this.$http.get('/WorkOrder/buyoncredit',{
 						merchantCode:this.merchantCode,
-						workOrderCode:this.buyerWorkOrderCode,
-						isBuyoncredit:val.isBuyoncredit,
-						onAccountId:val.onAccountId,
-						onAccountName:val.onAccountName,
-						toPhone:val.toPhone,
+						workOrderCode:this.buyerWorkOrderCode,//工单编号
+						onAccountType:val.onAccountType,//挂账类型(挂账类型 1:单位 2:个人)
+						onAccountId:val.onAccountId,//个人挂账用户code或者挂账单位id
 						plateNum:this.carNumber,
 						estimateBlanceTime:val.estimateBlanceTime,
 						flag:val.flag==1?true:false,
-						action:val.action
 					}).then(res => {
 						if(res.code == '10000'){
 								 this.tableData[this.rowIdx].status=4

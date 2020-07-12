@@ -4,18 +4,19 @@
 		<el-dialog :visible.sync="pnvIsShow" width="800px" :close-on-click-modal='false' :show-close='false'>
 			<div style="padding: 15px; background: #409eff;">
 				<el-row>
-				<el-col :span="7" class="server" style="color: #fff;font-size: 18px;">商品名称</el-col>
+				<el-col :span="6" class="server" style="color: #fff;font-size: 18px;">商品名称</el-col>
 				<el-col :span="3" style="color: #fff;font-size: 18px;" class="product">品牌</el-col>
 				<el-col :span="3" style="color: #fff;font-size: 18px;" class="product">规格</el-col>
 				<el-col :span="4" style="color: #fff;font-size: 18px;" class="product">当前库存</el-col>
-				<el-col :span="4" style="font-size: 18px;color: #fff;" class="checked">售价</el-col>
+				<el-col :span="3" style="font-size: 18px;color: #fff;" class="checked">售价</el-col>
+				<el-col :span="5"><el-input placeholder="请输入查询内容" @keyup.enter.native="searchGoods" v-model="search"></el-input></el-col>
 				</el-row>
 			</div>
 			
 			<div class="col">
 				<el-row>
 					<el-col :span="19">
-						<el-table  :data="serverList"  @expand-change="toggleRowExpansion" :show-header="false"  @selection-change='serverChecked' ref="table" :row-class-name="getRowClassName" height="400">
+						<el-table v-show="search ==''" :data="serverList"  @expand-change="toggleRowExpansion" :show-header="false"  @selection-change='serverChecked' ref="table" :row-class-name="getRowClassName" height="400">
 							<el-table-column width="30" type="selection"></el-table-column>
 							
 							
@@ -99,6 +100,31 @@
 								</template>
 							</el-table-column>
 						</el-table>
+						<el-table v-show="search != ''" row-key="goodsCode" :data="tableData" ref="searchTable" @selection-change="handleSelectionChange" :show-header="false">
+							<el-table-column type="selection" width="45" />
+							<el-table-column width="150" prop="name" />
+							<el-table-column width= "90" prop="title">
+								<template slot-scope="scope">
+									<span>{{scope.row.brandName||'--'}}</span>
+								</template>
+							</el-table-column>
+							<el-table-column width= "" prop="title">
+								<template slot-scope="scope">
+									<span>{{scope.row.specification||'--'}}</span>
+								</template>
+							</el-table-column>
+							<el-table-column width= "" prop="type">
+								<template slot-scope="scope">
+									<span>--</span>
+								</template>
+							</el-table-column>
+						<!-- 	<el-table-column width="260" prop="type">
+								<template slot-scope="scope">
+									<span>{{ scope.row.twoCategoryName + '/' + scope.row.threeCategoryName }}</span>
+								</template>
+							</el-table-column> -->
+							<el-table-column prop="standardPrice" />
+						</el-table>
 					</el-col>
 					
 					<!-- 右边一二级菜单 -->
@@ -132,6 +158,7 @@
 </template>
 
 <script>
+	let throttle = null;
 	export default {
 		props:{
 			pnvIsShow:Boolean,
@@ -142,8 +169,50 @@
 		components: {
 
 		},
+		watch: {
+			search(value) {
+				if (!!value) {
+					if (throttle) {
+						clearTimeout(throttle);
+					}
+					throttle = setTimeout(() => {
+						throttle = null;
+						this.searchGoods();
+					}, 500);
+				}
+			},
+			serverList(newVal, oldVal) {
+				let that = this;
+				this.$nextTick(() => {
+					that.endList.forEach(row => {
+						newVal.forEach(val => {
+							val.list.map(item => {
+								if (item.goodsCode+item.goodsCome  == row.goodsCode+row.goodsCome ) {
+									that.checkboxGroup1.push(item);
+								}
+							});
+						});
+					});
+				});
+			},
+			tableData(newVal, oldVal) {
+				let that = this;
+				this.$nextTick(() => {
+					that.endList.map(val => {
+						newVal.forEach(row => {
+							if (row.goodsCode == val.goodsCode) {
+								that.$refs.searchTable.toggleRowSelection(row, true);
+							}
+						});
+					});
+				});
+			}
+		},
 		data () {
 			return {
+				searchTable: [],
+				tableData: [],
+				search: '',
 				checkboxGroup1:[],
 				// 多选选项
 				checkList:[],
@@ -165,12 +234,42 @@
 			};
 		},
 		computed: {
-
+			endList() {
+				return this.searchTable.concat(this.checkboxGroup1);
+			}
 		},
 		methods: {
-			handleCheckAllChange(val){
-				console.log('勾选的',val)
-				
+			handleSelectionChange(val) {
+				let that = this;
+				this.searchTable = val;
+			},
+			searchGoods() {
+				this.$http
+					.get('/LaborGoods/listByCategoryForLaborSynthesize', {
+						merchantCode: this.merchantCode,
+						type: 2,
+						condition: this.search
+					})
+					.then(res => {
+						if (res.data == null) return;
+						res.data.map(item => {
+							item.goodsCode = item.code;
+							item.goodsCome = 3;
+							item.price = item.standardPrice;
+							item.serviceTime = item.serviceMinutes;
+							item.goodsName = item.name;
+							item.goodsVipId = null;
+							item.num = 1;
+							item.isGift = 0;
+							item.mapList = [];
+							item.goodsCount = item.num;
+							item.selected = false;
+							item.subtotalMoney = item.goodsCount * item.price;
+						});
+						this.tableData = res.data;
+					});
+			},
+			handleCheckAllChange(val){				
 			},
 			
 			
@@ -193,8 +292,7 @@
 			 */
 			confirm(){
 				// let arr =this.deWeight( this.serverSelected )
-				let arr =this.checkboxGroup1
-					console.log('%c最后提交的数组','color:#70ff57;font-size:20px;font-weight:bold',arr)
+				let arr =this.endList
 					this.$emit('sendPnv',arr)
 				},
 				close(){
@@ -222,7 +320,6 @@
 			this.arr3=arr4.concat(val)
 			this.arr2=this.arr2.concat(this.arr3)
 			this.serverSelected=this.arr1.concat(this.arr2)
-			console.log('%c内部勾选选项','color:#ff0000;font-size:20px;font-weight:bold',val,this.serverSelected,this.arr3)
 		},
 		
 		
@@ -274,7 +371,7 @@
 							 code: item.code,
 							 memberCardGoodsDiscount: null,
 							 memberCardType: "0",
-							 surplusCount: "10",
+							 surplusCount: 999,
 							 serviceDiscount: null,
 							 cardBalance: null,
 							 memberCardName: item.name,
@@ -283,7 +380,7 @@
 							 goodsName:item.name,
 							 goodsCount:1,
 							 mapList:[],
-							 goodsCome:2,
+							 goodsCome:3,
 							 price:item.standardPrice,
 							 subtotalMoney:item.price,
 							 isGift:0,
@@ -317,19 +414,14 @@ mounted() {
 
 },
 created() {
-	// this.$bus.$on('delRows',(val)=>{
-	// var that=this
-	// 	console.log('刷新',val)
-		
-	// 		that.checkboxGroup1.map((del,idx) => {
-	// 			if(del.memberCardType+del.goodsCode+del.goodsName==val.memberCardType+val.goodsCode+val.goodsName){
-	// 				// console.log('删除的下标',idx)
-	// 				// that.checkboxGroup1.splice(idx,1)
-	// 			}
-	// 		})
-		
-	// 	console.log('值',this.checkboxGroup1)
-	// })
+	this.$bus.$on('delRows',(val)=>{
+	var that=this
+			that.checkboxGroup1.map((del,idx) => {
+				if(del.memberCardType+del.goodsCode+del.goodsName==val.memberCardType+val.goodsCode+val.goodsName){
+					that.checkboxGroup1.splice(idx,1)
+				}
+			})
+	})
 	this.merchantCode=this.$route.query.merchantCode
 }, //生命周期 - 创建之后
 	}

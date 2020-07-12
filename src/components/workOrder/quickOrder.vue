@@ -1074,7 +1074,6 @@ await	this.$http
 						modelNames = this.seriesName[1].split('/')[1];
 						amgValue2 = this.seriesName[0].split('/')[1];
 					}
-					console.log('车', carType2, amgValue2, modelNames);
 					let isMyCard;
 					let goodsCome;
 					if (this.radio == true) {
@@ -1176,7 +1175,6 @@ await	this.$http
 					type
 				})
 				.then(res => {
-					console.log('%c请求新建服务分类的 一 二 三级列表结果', 'color:red;font-size:20px', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.value = item.code + ',' + item.name;

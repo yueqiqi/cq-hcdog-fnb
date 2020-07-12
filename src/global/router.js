@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import demo from '../components/demo'
+// import demo from '../components/demo'
 
 
 
@@ -48,11 +48,11 @@ export default new Router({
 			    name: 'noVip',
 			    component: noVip
 			},
-			{ //demo
-			    path: '/demo',
-			    name: 'demo',
-			    component: demo
-			},
+			// { //demo
+			//     path: '/demo',
+			//     name: 'demo',
+			//     component: demo
+			// },
 			{ //工单列表
 			    path: '/',
 			    name: 'orderList',

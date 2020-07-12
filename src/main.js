@@ -30,10 +30,8 @@ import 'element-ui/lib/theme-chalk/index.css';
 Vue.use(ElementUI);
 Vue.prototype.bus=new Vue()
 Vue.prototype.carLists=new Vue()
-// 路由守卫
-
-window.carList='123',
-
+// 上传图片地址
+Vue.prototype.$imageUrl = 'https://qw-admin.yunchefu.cn/oss/image/toOss'
 // new Vue({
 //   render: h => h(App),
 // }).$mount('#app')

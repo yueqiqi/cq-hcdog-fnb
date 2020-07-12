@@ -86,7 +86,6 @@
 			 * 表格点击
 			 */
 			rowClick(row){
-				console.log('%c点击的行','color:#70ff57;font-size:20px;font-weight:bold',row)
 				this.state=row.name+'/'+row.phone
 				this.condition=row.customerCode
 				this.showData=false
@@ -102,7 +101,6 @@
 						keyWords:this.state,
 					})
 					.then(res=>{
-						 console.log('%c请求模糊搜索结果','color:red;font-size:20px',res)
 						 if(res.code == '10000'){
 								this.showData=true
 								this.tableData=res.data
@@ -140,7 +138,6 @@
         };
       },					
 		handleSelect(item) {
-			        console.log('点击',item);
 							this.state=item.cName+'/'+item.phone+'/'+item.carNum
 							this.otherName=item.cName
 							this.otherPhone=item.phone

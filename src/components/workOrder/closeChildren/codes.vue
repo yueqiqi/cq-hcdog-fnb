@@ -1,9 +1,9 @@
 <!-- 选择兑换码弹窗 -->
 <template>
 	<div class='dis'>
-		<el-dialog :close-on-click-modal='false' title="已选兑换码" center :visible.sync="codeShow" width="70%" :show-close='false'>
+		<el-dialog :close-on-click-modal='false' title="已选兑换码" center :visible="codeShow" @open="open" width="70%" :show-close='false'>
 			<el-row>
-			<el-col :span="12" >
+			<el-col :span="12">
 				<div style="height: 70px;background: #f1f1f1;display: flex;align-items: center;padding:0 20px"><el-input v-model="search" placeholder="搜索优惠券"></el-input></div>
 				<div>
 					<el-table :show-header='false' :data='list' @selection-change="chooseDis" ref="multipleTable" @select="tableSelect">
@@ -25,7 +25,7 @@
 			</el-col>
 			</el-row>
 			<span slot="footer" class="dialog-footer">
-			    <el-button @click="close">取 消</el-button>
+			    <el-button @click="confirm">取 消</el-button>
 			    <el-button type="primary" @click="confirm">确认选择</el-button>
 			  </span>
 		</el-dialog>
@@ -57,7 +57,7 @@
 				val.map(item => {
 					item.goodsCount=1
 				})
-				this.first(val)	
+				// this.first(val)	
 				this.list=val
 			}
 				
@@ -68,6 +68,25 @@
 
 		},
 		methods: {
+			open(){
+				this.first()
+			},
+			selected(row){
+				this.$http
+					.get('/LaborRedeemCode/discriminateCode', {
+						merchantCode: this.merchantCode,
+						exchangeCode:row.exchangeCode,
+						type:row.type,
+					})
+					.then(res => {
+						if (res.data.status == 'true') {
+							
+							
+						} else {
+							alert('该兑换码已被使用或者暂无该兑换码'+res.message);
+						}
+					});
+			},
 			//
 			tableSelect(rows,row){
 				//rows--选中的项   row--未选中行的项
@@ -79,23 +98,27 @@
 							type:row.type,
 					 }])
 					 .then(res=>{
-					 	 console.log('%c请求结果','color:red;font-size:20px',res)
 					 	 if(res.code == '10000'){
 					 	}else{
 					 		 alert(res.message)
 					 }
 					 })
+					 
+				 }else{
+					 this.selected(row)
 				 }
+				 
+				 
 			},
 			
 			
 			
 			// 表格中默认全选
-			first(rows){
-				// let that=this
+			first(){
+				let that=this
 				this.$nextTick(()=>{
-						rows.forEach(row => {
-								this.$refs.multipleTable.toggleRowSelection(row,true);
+						this.list.map((row,idx) => {
+								that.$refs.multipleTable.toggleRowSelection(this.list[idx],true);
 						});
 				})
 		},
@@ -112,6 +135,7 @@
 			// 选择的优惠券
 			chooseDis(val){
 				this.chooseList=val
+				this.$parent.getEditfindOrderInfo(this.chooseList,this.$parent.vipList)
 			},
 		},
 mounted() {

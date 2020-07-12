@@ -4,6 +4,8 @@
 		<div class="header" style="background: #F2F2F2;padding:10px 0px;">
 			<div class=" center">
 				<div style="font-size: 32px;color: #fff;font-weight: bold;margin-right: 15px;">老用户搜索</div>
+				<!-- <div class="d-flex" style="width:400px ;"><el-input style="border-top-right-radius:0px ;border-bottom-right-radius: 0px;"  v-model="search" placeholder="根据客户姓名、电话、车牌号进行搜索"></el-input><el-button  style="background:#66ccff;border:1px solid #66ccff;border-top-left-radius:0px ;border-bottom-left-radius: 0px;" @click='searchOld'>搜索</el-button></div> -->
+
 				<div class="d-flex" style="width:400px ;">
 					<el-input
 						:disabled="useType == 'copy'"
@@ -76,7 +78,12 @@
 					</el-form-item>
 
 					<el-form-item label="车系车型">
+						<!-- <el-select style='width: 202px;' v-model="owner.seriesName" placeholder="请选择" :disabled='dis'>
+						    <el-option v-for="item in series" :key="item" :label="item.familyName" :value="item.familyName"></el-option>
+						</el-select> -->
 						<el-cascader style="width: 202px;" :disabled="dis" v-model="owner.seriesName" :options="series" @active-item-change="getSeriesList"></el-cascader>
+
+						<!-- 	<el-select style='width: 202px;' v-model="owner.seriesName" :options="series" :disabled='dis' @expand-change='chCar2'></el-cascader> -->
 					</el-form-item>
 					<el-form-item label="车身颜色"><el-input v-model="owner.carColor" placeholder="请输入车身颜色" :disabled="dis" @input="ic"></el-input></el-form-item>
 
@@ -110,7 +117,14 @@
 							value-format="yyyy-MM-dd HH:mm:ss"
 						></el-date-picker>
 					</el-form-item>
+					<!-- <el-form-item label="开单时间">
+						<el-date-picker style='width: 202px;' v-model="owner.workorderTime" type="datetime" placeholder="请选择开单时间" :disabled='dis' value-format='yyyy-MM-dd HH:mm:ss'>
+						</el-date-picker>
+					</el-form-item> -->
 				</el-form>
+
+				<!-- <el-button type='danger' @click='getCarName'>获取选择的车牌车系车型</el-button> -->
+
 				<div class="farewell">
 					<div class="font-big" style="line-height: 60px;">送修人信息</div>
 					<div class="d-flex">
@@ -148,9 +162,6 @@
 				</div>
 			</div>
 
-			<!-- 常用服务商品 -->
-			<div class="serve"><commonGoods ref="common" @serverSelected="serverSelected" @goodsSelected="goodsSelected"></commonGoods></div>
-
 			<!-- b3 -->
 			<div class="b3" style="background: #fff;border-radius:15px ;margin-top: 10px;padding-top: 10px;padding-bottom: 10px;">
 				<div class="font-big" style="padding-left: 36px;line-height: 60px;">维修/保养项目(工时)</div>
@@ -176,17 +187,21 @@
 					</el-table-column>
 
 					<el-table-column align="center" prop="price" label="价格">
+						<!-- <template slot-scope="scope">
+							<el-input @change='manOurMoneyChange(scope.row.price,scope.row.goodsCount,scope.$index, manOur)' size='mini' v-model="scope.row.price" :disabled='dis'></el-input>
+						</template> -->
 					</el-table-column>
 
 					<el-table-column align="center" prop="goodsCount" label="服务次数">
 						<template slot-scope="scope">
 							<el-input-number
 								:min="1"
-								:max="scope.row.surplusCount ? Number(scope.row.surplusCount) : 999"
+								:max="scope.row.surplusCount != null ? scope.row.surplusCount : 20"
 								size="mini"
 								v-model="scope.row.goodsCount"
 								@change="changeManOurNum(scope.row.price, scope.row.goodsCount, scope.$index, manOur)"
-								:disabled="dis  && scope.row.isGift == 1 ? true:false"
+								label="描述文字"
+								:disabled="dis == false ? scope.row.isGift == 1 : dis"
 							></el-input-number>
 						</template>
 					</el-table-column>
@@ -229,23 +244,16 @@
 						</template>
 					</el-table-column>
 				</el-table>
-				<div class="lastTimeRemark" style="margin-top: 20px;padding-left: 25px;padding-top: 20px;display: flex;">
-					<el-input style="width: 250px;" placeholder="搜索服务名称" @focus="showNoVip" v-model="manOurSearch" :disabled="dis">
+				<div class="lastTimeRemark" style="margin-top: 20px;padding-left: 25px;padding-top: 20px;">
+					<el-input style="width: 250px;" placeholder="搜索服务名称" v-model="manOurSearch" :disabled="dis">
 						<el-button slot="append" icon="el-icon-search" @click="showNoVip"></el-button>
 					</el-input>
-					<div>
-						
-					<!-- <selectServer :dis='dis' ref='showSelectServer' @close='selectServer' @selectionChange='selectServer'></selectServer> -->
-					</div>
-					<div>
-						
 					<el-button @click="openNs" style="margin-left: 15px;" type="text" :disabled="dis">没搜到?新建服务</el-button>
-					</div>
 				</div>
 			</div>
 
 			<!-- 维修/保养项目(配件) -->
-			<b4 :dis="dis" :manOur="manOur2" :Elist="Elist" @children="children1" :customerCode="customerCode"></b4>
+			<b4 :dis="dis" :manOur="manOur2" @children="children1" :customerCode="customerCode"></b4>
 			<!-- 门店耗材 -->
 			<b5 :dis="dis" :manOur="manOur3" @children="children2"></b5>
 			<!-- 客户自带材料 -->
@@ -301,8 +309,7 @@ import nv from './comprehensiveOrderChildren/useVip.vue';
 import newServe from './comprehensiveOrderChildren/newServe.vue';
 // // 打开维修/保养项目(配件)--无会员卡
 // import pnv from './comprehensiveOrderChildren/partsNoVip'
-import commonGoods from './comprehensiveOrderChildren/commonGoods.vue';
-import selectServer from './comprehensiveOrderChildren/select1.vue'
+
 // 选择员工弹窗
 import emp from '../Alert/chooseEmp.vue';
 //  综合开单--维修/保养商品(配件)
@@ -328,14 +335,10 @@ export default {
 		b4,
 		b5,
 		b6,
-		b7,
-		commonGoods,
-		selectServer
+		b7
 	},
 	data() {
 		return {
-			Blist: [],
-			Elist: [],
 			customerCodeOther: '',
 			customerPhoneOther: '',
 			customerNameOther: '',
@@ -480,7 +483,6 @@ export default {
 	},
 	computed: {
 		allNums: function() {
-			// this.allNums=0
 			let that = this;
 			let total1 = 0;
 			let total2 = 0;
@@ -488,7 +490,7 @@ export default {
 			let total = 0;
 			if (that.subjoin.length > 0) {
 				that.subjoin.map(item => {
-					total1 += Number(item.price);
+					total1 += item.price;
 				});
 			}
 
@@ -518,6 +520,7 @@ export default {
 					condition: this.$route.query.carNum
 				})
 				.then(res => {
+					console.log('%c请求搜索结果', res, 'font-size:18px');
 					if (res.code == '10000') {
 						// res.data.compulsoryInsureDeadline=res.data.commercialInsureDeadline//年检日期
 						this.owner = res.data;
@@ -535,6 +538,7 @@ export default {
 							if (res.data.brandName == item.brandName) {
 								this.owner.brandName = item.value;
 								this.chCar(item.value);
+								console.log('数据回显第一层');
 							}
 						});
 
@@ -548,11 +552,13 @@ export default {
 										item.children.map(items => {
 											if (items.vehicleName == modelName) {
 												that.owner.seriesName = [endseries, items.value];
+												console.log('选中的值999', that.owner.seriesName);
 											}
 										});
 									}, 1500);
 								}
 							});
+							console.log('最后的值', this.series);
 						}, 1500);
 						if (res.data.vehicleColor != null) {
 							this.owner.carColor = res.data.vehicleColor;
@@ -580,67 +586,6 @@ export default {
 		}, 1000);
 	}, //生命周期 - 创建之后
 	methods: {
-		arrayNew(arr) {
-			let array = [];
-			for (let i = 0; i < arr.length; i++) {
-				if (array.length == 0) {
-					array.push(arr[i]);
-				} else {
-					let b = 0;
-					for (let m = 0; m < array.length; m++) {
-						if (arr[i].goodsCode+arr[i].goodsCome == array[m].goodsCode+array[m].goodsCome) {
-							b = 1;
-							break;
-						}
-					}
-					if (b == 0) {
-						array.push(arr[i]);
-					}
-				}
-			}
-			return array;
-		},
-		selectServer(val,type){
-			if(type=='service'){
-				this.manOur = this.arrayNew(this.manOur.concat(this.Clist.concat(this.AvipList.concat(val))));
-			}
-				// this.manOur.map((val1, idx) => {
-				// 	if (val1.goodsCode == list.goodsCode) {
-				// 		this.manOur.splice(idx, 1);
-				// 	}
-				// });
-		},
-		serverSelected(val, is, list) {
-			this.Blist = val;
-			if (is) {
-				// val.map(val => {
-				// 	this.manOur.map(val2 => {
-				// 		if(val.goodsCode+val.goodsCome!=val2.goodsCode+val2.goodsCome){
-				// 			this.manOur.push(val)
-				// 		}
-				// 	})
-				// })
-				this.manOur = this.arrayNew(this.manOur.concat(this.Clist.concat(this.AvipList.concat(this.Blist))));
-			} else {
-				this.manOur.map((val1, idx) => {
-					if (val1.goodsCode == list.goodsCode) {
-						this.manOur.splice(idx, 1);
-					}
-				});
-			}
-		},
-		goodsSelected(val, is, list) {
-			this.Elist = val;
-			if (is) {
-				this.manOur2 = this.arrayNew(this.manOur2.concat(val));
-			} else {
-				this.manOur2.map((val1, idx) => {
-					if (val1.goodsCode == list.goodsCode) {
-						this.manOur2.splice(idx, 1);
-					}
-				});
-			}
-		},
 		ic() {
 			this.$forceUpdate();
 		},
@@ -656,6 +601,7 @@ export default {
 					type
 				})
 				.then(res => {
+					console.log('%c请求新建服务分类的 一 二 三级列表结果', 'color:red;font-size:20px', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.value = item.code + ',' + item.name;
@@ -786,6 +732,7 @@ export default {
 					laborOrderGoodsList
 				})
 				.then(res => {
+					console.log('请求新增综合单结果', res);
 					if (res.code == '10000') {
 						this.$router.push({
 							path: '/',
@@ -900,6 +847,7 @@ export default {
 					laborOrderGoodsList
 				})
 				.then(res => {
+					console.log('请求新增综合单结果', res);
 					if (res.code == '10000') {
 						this.$router.push({
 							path: '/',
@@ -925,6 +873,7 @@ export default {
 					copy
 				})
 				.then(res => {
+					console.log('请求综合开单结果', res);
 					if (res.code == '10000') {
 						this.orderStatus = res.data.status;
 						if (this.orderStatus == 0) {
@@ -934,12 +883,19 @@ export default {
 						}
 						res.data.lastMileage = res.data.mileage || 0;
 						this.owner = res.data;
+
+						// var modelName=res.data.seriesName
+						// var seriesName=res.data.modelName
 						var modelName = res.data.modelName;
 						var seriesName = res.data.seriesName;
+						// this.owner=res.data
+						// this.owner.plateNumber=res.data.plateNumber
+
 						this.brand.map(item => {
 							if (res.data.brandName == item.brandName) {
 								this.owner.brandName = item.value;
 								this.chCar(item.value);
+								console.log('数据回显第一层');
 							}
 						});
 
@@ -949,17 +905,20 @@ export default {
 								// 皖BMW362
 								if (seriesName == item.label) {
 									var endseries = item.value;
+									console.log('车系', endseries);
 									that.getSeriesList2(item.value.split('/')[0]);
 
 									setTimeout(() => {
 										item.children.map(items => {
 											if (items.vehicleName == modelName) {
 												that.owner.seriesName = [endseries, items.value];
+												console.log('选中的值999', that.owner.seriesName);
 											}
 										});
 									}, 1500);
 								}
 							});
+							// console.log('最后的值',this.series,)
 						}, 2500);
 
 						this.customerCode = res.data.customerCode;
@@ -967,6 +926,7 @@ export default {
 						// 表单列表
 
 						//上次备注
+						// this.lastTimeRemark=res.data.beforeRemarks
 						// 工时
 						res.data.laborOrderGoodsList.map(item => {
 							if (item.type == 1) {
@@ -980,27 +940,25 @@ export default {
 							} else {
 								this.manOur4.push(item);
 							}
-							if (item.type == 1 || item.type == 2) {
-								this.$refs.common.list.map(val => {
-									if (item.goodsCode+item.goodsCome == val.goodsCode+val.goodsCome) {
-										val.selected = true;
-									}
-								});
-							}
 						});
+						console.log('%c客户组自带', 'color:#70ff57;font-size:20px;font-weight:bold', this.manOur4, this.useType);
 						// 附加费用
 						this.subjoin = res.data.list;
 						// 备注
 						this.otherRemark = res.data.remarks;
 						// 总价
-						if (res.data.isMyCard == 1) {
-							this.useVip = true;
-							(this.customerCodeOther = res.data.customerCodeOther),
-								(this.customerPhoneOther = res.data.customerPhoneOther),
-								(this.customerNameOther = res.data.customerNameOther),
-								(this.state = res.data.customerNameOther + '/' + res.data.customerPhoneOther);
-							this.gp();
+						this.allNums = res.data.totalMoney;
+						
+						if(res.data.isMyCard==1){
+							this.useVip=true
+							 this.customerCodeOther=res.data.customerCodeOther,
+							 this.customerPhoneOther=res.data.customerPhoneOther,
+							 this.customerNameOther=res.data.customerNameOther,
+							 this.state=res.data.customerNameOther+'/'+res.data.customerPhoneOther
+							this.gp()
 						}
+						
+						
 					}
 				});
 		},
@@ -1017,6 +975,7 @@ export default {
 					type
 				})
 				.then(res => {
+					console.log('请求弹窗树状结果', res);
 					if (res.code == '10000') {
 						this.nvSearchList = res.data;
 						res.data.map(item => {
@@ -1037,6 +996,7 @@ export default {
 							item.children = item.mapList;
 						});
 						this.options = res.data;
+						console.log('%c商品模板', 'color:#70ff57;font-size:20px;font-weight:bold', this.options);
 					}
 				});
 		},
@@ -1104,6 +1064,7 @@ export default {
 		// 打开维修/保养项目(工时)--无会员卡
 		showNoVip() {
 			this.nvIsShow = true;
+
 			this.getTree('1');
 		},
 
@@ -1129,6 +1090,7 @@ export default {
 		openNs() {
 			this.nsIsShow = true;
 			this.$http.get('/LaborGoods/getSelect', {}).then(res => {
+				console.log('请求服务模板结果', res);
 				if (res.code == '10000') {
 					this.nsList = res.data;
 				}
@@ -1155,6 +1117,7 @@ export default {
 		},
 		priceChange(arr) {
 			this.subjoin = arr;
+			// console.log('计算总价',total)
 		},
 		selectChange(arr) {
 			this.subjoin = arr;
@@ -1195,6 +1158,7 @@ export default {
 				modelName = f.seriesName[1].split('/')[1];
 				seriesName = f.seriesName[0].split('/')[1];
 			}
+			// console.log(modelName,seriesName,'品牌	',brandName)
 			let isMyCard;
 			if (this.useVip) {
 				isMyCard = 1; //使用他人会员卡
@@ -1215,6 +1179,7 @@ export default {
 			this.manOur3.map(item => {
 				item.type = 3;
 			});
+			console.log('客户自带', this.manOur4);
 			// 客户自带材料
 			// this.manOur4.map(item=>{
 			// 	item.type=4
@@ -1223,6 +1188,7 @@ export default {
 			arr = this.manOur2.concat(this.manOur.concat(this.manOur3.concat(this.manOur4)));
 			if (this.useType == 'set') {
 				// 编辑
+				// console.log('公里数',f)
 				this.setList(
 					f.customerName,
 					f.customerPhone,
@@ -1327,6 +1293,7 @@ export default {
 			arr = this.manOur2.concat(this.manOur.concat(this.manOur3.concat(this.manOur4)));
 			if (this.useType == 'set') {
 				// 编辑
+				// console.log('公里数',f)
 				this.setList(
 					f.customerName,
 					f.customerPhone,
@@ -1403,13 +1370,22 @@ export default {
 			// rows[index].subtotal = 0;
 			// this.manOur[index].price = 0;
 			this.manOur[index].goodsCount = 1;
+			// console.log(index,rows,this.manOur)
 		},
 		// 删除本行信息
 		deleteRow(index, rows) {
 			this.$bus.$emit('delRow', rows[index]);
-			this.$set(this.manOur[index],'goodsCount',1)
-			this.$set(this.manOur[index],'isGift',0)
-			this.manOur.splice(index, 1)
+			console.log('bus1删除的数据', rows[index]);
+			// this.delRows
+			this.manOur.splice(index, 1);
+			// this.fatherData.map((item,idx) => {
+			// 	if(item==rows){
+			// 		this.fatherData.splice(idx,1)
+			// 	}
+			// })
+			// console.log()
+
+			// this
 		},
 
 		/**
@@ -1426,7 +1402,9 @@ export default {
 				mapList.push(item);
 			});
 			let that = this;
+			console.log('%c111', 'font-size:100px');
 			that.manOur[that.chooseEmpidx].mapList = mapList;
+			console.log(this.manOur);
 		},
 		// 关闭弹窗
 		closeEmpAlert() {
@@ -1435,12 +1413,14 @@ export default {
 		// 显示弹窗
 		setEmpAlert(index, row) {
 			(this.empAlert = true), (this.chooseEmpidx = index);
+			console.log('%c选择员工', 'color:#70ff57;font-size:20px;font-weight:bold', row);
 			this.$http
 				.get('/LaborFindByGoods/findByGoods', {
 					merchantCode: this.merchantCode,
 					goodsCode: row[index].goodsCode
 				})
 				.then(res => {
+					console.log('请求选择员工弹窗结果', res);
 					if (res.code == '10000') {
 						// if()
 						let e1 = [];
@@ -1492,6 +1472,7 @@ export default {
 				this.$alert('使用他人会员卡请先输入车牌号', '提示', {
 					confirmButtonText: '确定'
 				});
+				// console.log('')
 
 				this.useVip = false;
 				this.usevip = false;
@@ -1514,23 +1495,28 @@ export default {
 			this.vipPop = false;
 		},
 		confirmVipPop(val) {
-			
+			this.vipPop = false;
 			let arr = [];
 			let arr2 = [];
-			if (val.length > 0) {
+			console.log('父组件', val);
+			if (val.map.length > 0) {
 				val.map(item => {
+					item.subtotalMoney = item.price;
+					// item.goodsCount=1
+					item.mapList = [];
 					if (item.goodsType == 1) {
 						arr.push(item);
 					} else {
 						arr2.push(item);
 					}
 				});
-				this.$nextTick(()=>{
-					this.AvipList = arr2;
-					this.manOur2 = this.deWeight(this.manOur2.concat(arr));
-					this.manOur = this.Clist.concat(this.AvipList);
-				})
-				this.vipPop = false;
+
+				this.AvipList = arr2;
+				// this.BalertList=arr
+				// this.Clist
+				this.manOur2 = this.deWeight(this.manOur2.concat(arr));
+				// this.manOur=this.deWeight(this.manOur.concat(arr2))
+				this.manOur = this.Clist.concat(this.AvipList);
 			}
 		},
 
@@ -1555,6 +1541,7 @@ export default {
 					condition: this.search
 				})
 				.then(res => {
+					console.log('%c请求输入车牌结果', 'font-size:18px', res);
 					if (res.code == '10000') {
 						this.lastTimeRemark = res.data.beforeRemarks;
 						var seriesName = res.data.seriesName;
@@ -1569,6 +1556,7 @@ export default {
 							if (res.data.brandName == item.brandName) {
 								this.owner.brandName = item.value;
 								this.chCar(item.value);
+								console.log('数据回显第一层');
 							}
 						});
 
@@ -1578,18 +1566,27 @@ export default {
 								// 皖BMW362
 								if (seriesName == item.label) {
 									var endseries = item.value;
+									console.log('车系', endseries);
 									that.getSeriesList2(item.value.split('/')[0]);
 
 									setTimeout(() => {
 										item.children.map(items => {
 											if (items.vehicleName == modelName) {
 												that.owner.seriesName = [endseries, items.value];
+												console.log('选中的值999', that.owner.seriesName);
 											}
 										});
 									}, 500);
 								}
 							});
+							// console.log('最后的值',this.series,)
 						}, 500);
+						// this.series.map()
+
+						// this.
+
+						// console.log('所有车品牌',this.brand)
+						// this.owner.seriesName=['123123123123123312`123','21312']
 						if (res.data.vehicleColor != null) {
 							this.owner.carColor = res.data.vehicleColor;
 						}
@@ -1609,14 +1606,17 @@ export default {
 		 */
 		// 点击打开新增车辆/客户
 		addUser() {
+			console.log('打开');
 			this.addUserIsShow = true;
 		},
 		// 关闭新增车辆客户弹窗
 		closeAc() {
+			console.log('关闭');
 			this.addUserIsShow = false;
 		},
 		// 接收新增车辆/客户传递的数据
 		sendAc(val) {
+			console.log('val', val);
 			let f = val;
 			this.$http
 				.post('/laborSynthesize/addCarAndCustomer', {
@@ -1653,6 +1653,7 @@ export default {
 							if (val.brandName == item.brandName) {
 								this.owner.brandName = item.value;
 								this.chCar(item.value);
+								console.log('数据回显第一层');
 							}
 						});
 
@@ -1662,17 +1663,20 @@ export default {
 								// 皖BMW362
 								if (seriesName == item.label) {
 									var endseries = item.value;
+									console.log('车系', endseries);
 									that.getSeriesList2(item.value.split('/')[0]);
 
 									setTimeout(() => {
 										item.children.map(items => {
 											if (items.vehicleName == modelName) {
 												that.owner.seriesName = [endseries, items.value];
+												console.log('选中的值999', that.owner.seriesName);
 											}
 										});
 									}, 1500);
 								}
 							});
+							// console.log('最后的值',this.series,)
 						}, 1500);
 					} else {
 						alert(res.message);
@@ -1689,6 +1693,7 @@ export default {
 					merchantCode: this.merchantCode
 				})
 				.then(res => {
+					console.log('请求获取车辆品牌列表结果', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.value = item.brandId + '/' + item.brandName;
@@ -1704,6 +1709,7 @@ export default {
 		 * 选择品牌
 		 */
 		chCar(val) {
+			console.log('选择品牌后的值', val);
 			if (val != '') {
 				this.brandId = val.split('/')[0];
 			}
@@ -1712,6 +1718,7 @@ export default {
 					brandId: this.brandId
 				})
 				.then(res => {
+					console.log('请求获取车辆车系列表结果', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.value = item.familyId + '/' + item.familyName;
@@ -1725,11 +1732,14 @@ export default {
 
 		// 选择车系
 		getSeriesList(val) {
+			console.log('选择车型车系');
+			console.log('%c车型', 'color:red', val[0].split('/')[0], val);
 			this.$http
 				.get('/laborSynthesize/getModelList', {
 					familyId: val[0].split('/')[0]
 				})
 				.then(res => {
+					console.log('请求车辆车型结果', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.label = item.vehicleName;
@@ -1745,11 +1755,13 @@ export default {
 		},
 
 		getSeriesList2(val) {
+			console.log('调用接口', val);
 			this.$http
 				.get('/laborSynthesize/getModelList', {
 					familyId: val
 				})
 				.then(res => {
+					console.log('请求车辆车型结果', res);
 					if (res.code == '10000') {
 						res.data.map(item => {
 							item.label = item.vehicleName;
@@ -1766,6 +1778,8 @@ export default {
 
 		//获取选中的值
 		getCarName() {
+			console.log('获取车名', this.owner.seriesName);
+			console.log(this.owner.seriesName[1].split('/')[1]);
 		},
 
 		/**
@@ -1778,6 +1792,7 @@ export default {
 					condition: this.owner.plateNumber
 				})
 				.then(res => {
+					console.log('%c请求输入车牌结果', 'font-size:18px', res);
 					if (res.code == '10000') {
 						this.lastTimeRemark = res.data.beforeRemarks;
 						// var seriesName=res.data.modelName
@@ -1792,6 +1807,7 @@ export default {
 							if (res.data.brandName == item.brandName) {
 								this.owner.brandName = item.value;
 								this.chCar(item.value);
+								console.log('数据回显第一层');
 							}
 						});
 
@@ -1801,17 +1817,20 @@ export default {
 								// 皖BMW362
 								if (seriesName == item.label) {
 									var endseries = item.value;
+									console.log('车系', endseries);
 									that.getSeriesList2(item.value.split('/')[0]);
 
 									setTimeout(() => {
 										item.children.map(items => {
 											if (items.vehicleName == modelName) {
 												that.owner.seriesName = [endseries, items.value];
+												console.log('选中的值999', that.owner.seriesName);
 											}
 										});
 									}, 500);
 								}
 							});
+							// console.log('最后的值',this.series,)
 						}, 500);
 
 						this.owner.carColor = res.data.vehicleColor || '';
@@ -1830,6 +1849,7 @@ export default {
 		inputTel(val) {
 			let reg = /^1[3|4|5|7|8][0-9]\d{8}$/;
 			if (reg.test(val)) {
+				console.log('输入的手机号', val);
 			} else {
 				this.$message.error('请输入正确的手机号');
 				this.owner.customerPhone = '';
@@ -1838,6 +1858,7 @@ export default {
 		inputTel2(val) {
 			let reg = /^1[3|4|5|7|8][0-9]\d{8}$/;
 			if (reg.test(val)) {
+				console.log('输入的手机号', val);
 			} else {
 				this.$message.error('请输入正确的手机号');
 				this.owner.repairPhone = '';

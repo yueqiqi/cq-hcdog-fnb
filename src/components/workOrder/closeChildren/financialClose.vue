@@ -59,7 +59,7 @@
 					<tr style="height: 60px;">
 						<td style="text-align: left; padding-left: 30px;">兑换码</td>
 						<td class="d-flex" style="width: 700px;border: 0;padding:20px;padding-left: 40px;">
-							<div v-for="(item, index) in form.redeemCode" :key="index">{{ item.name }}</div>
+							<div v-for="(item, index) in form.redeemCode" :key="index">{{ item }}</div>
 						</td>
 					</tr>
 				</table>
@@ -378,13 +378,13 @@ export default {
 						//会员卡抵扣金额
 						f.specialDeduction=route.specialDeduction;
 						// 兑换码集合  逗号分隔
-						if(route.redeemCode.length>0){
-							route.redeemCode.map(item =>{
-								item.exchangeCode=item.code
-								item.merchantCode=this.merchantCode
-							})
-							f.redeemCode=route.redeemCode
-						}
+						// if(route.redeemCode.length>0){
+							// route.redeemCode.map(item =>{
+							// 	item.exchangeCode=item.code
+							// 	item.merchantCode=this.merchantCode
+							// })
+						// }
+							f.redeemCode=route.redeemCode||[]
 						//会员卡总抵扣金额
 						f.deduction=route.deduction
 						//兑换码核销金额

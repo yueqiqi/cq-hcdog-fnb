@@ -32,7 +32,7 @@
 				<el-table-column prop="totalMoney" label="工单总额"></el-table-column>
 				<el-table-column prop="preferentialMoney" label="优惠金额"></el-table-column>
 				<el-table-column prop="realityMoney" label="应收金额/元"></el-table-column>
-				<el-table-column prop="repairName" label="开单人员"></el-table-column>
+				<el-table-column prop="createName" label="开单人员"></el-table-column>
 				<el-table-column prop="workorderTime" label="开单时间"></el-table-column>
 				<el-table-column prop="payTime" label="支付完成时间" width="180"></el-table-column>
 				<el-table-column prop="name" label="状态">

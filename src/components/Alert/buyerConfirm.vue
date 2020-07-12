@@ -12,7 +12,7 @@
 	<div>
 	    <!-- 挂账弹窗 -->
 	    <!-- <el-button type="text" @click="dialog1 = true">挂账弹窗</el-button> -->
-	    <el-dialog :visible.sync="buyerAlert" width="40%" title="挂账" center>
+	    <el-dialog :visible.sync="buyerAlert" width="40%" title="挂账" center :close-on-click-modal="false" :before-close="handleDialogClose">
 	      <div class="dialogContent">
 	        <div class="dialogContentTop">
 	          <span class="label">挂账选择</span>
@@ -22,7 +22,7 @@
 	          <div class="Item">
 	            <el-radio v-model="radio" label="1" @change='radioChange'>单位挂账</el-radio>
 	            <div style="display:inline" v-show="radio == 1">
-	              <el-select v-model="unitValue" placeholder="请选择挂账单位">
+	              <el-select v-model="unitValue" placeholder="请选择挂账单位" @focus='getComponys'>
 	                <el-option
 	                  v-for="item in options"
 	                  :key="item.value"
@@ -31,16 +31,25 @@
 	                >
 	                </el-option>
 	              </el-select>
-	              <!-- <span class="handleBtn" @click="createUnit">新建挂账单位</span> -->
+	              <span class="handleBtn" @click="createUnit">新建挂账单位</span>
 	            </div>
 	          </div>
 	          <div class="Item">
 	            <el-radio v-model="radio" label="2" @change='radioChange'>个人挂账</el-radio>
 	            <div style="display:inline" v-show="radio == 2">
-	              <el-input placeholder="请输入手机号" v-model="phone">
+	              <!-- <el-input placeholder="请输入手机号" v-model="phone">
 	                <i slot="suffix" class="el-input__icon el-icon-search"></i>
-	              </el-input>
-	              <!-- <span class="handleBtn">新建客户</span> -->
+	              </el-input> -->
+								<el-select v-model="unitValue2" placeholder="请选择个人挂账用户" @focus="getPersonage">
+								  <el-option
+								    v-for="item in options2"
+								    :key="item.value"
+								    :label="item.label"
+								    :value="item"
+								  >
+								  </el-option>
+								</el-select>
+	              <span class="handleBtn" @click="addPer">新建客户</span>
 	            </div>
 	          </div>
 	          <div class="Item">
@@ -67,7 +76,13 @@
 	            短信提醒选择开启，会在预计结算日期当天上午09:00发送挂账待结算短信给车主
 	          </div>
 	        </div>
-	        <div class="Item" v-show="radio==1">
+					<div  class="Item">
+						<span style="vertical-align: top">短信提醒内容：</span>
+						<div class="textarea">
+							{{msg}}
+						</div>
+					</div>
+	        <!-- <div class="Item" v-show="radio==1">
 	          <span style="vertical-align: top">短信提醒内容：</span>
 	          <div class="textarea">
 	            <el-input
@@ -78,7 +93,7 @@
 	            >
 	            </el-input>
 	          </div>
-	        </div>
+	        </div> -->
 	      </div>
 	      <span slot="footer" class="dialog-footer">
 	        <el-button @click="close">取 消</el-button>
@@ -86,7 +101,7 @@
 	      </span>
 	    </el-dialog>
 	    <!--新建挂账单位-->
-	    <el-dialog title="新增挂账单位" :visible.sync="dialog2" width="40%" center>
+	    <el-dialog title="新增挂账单位" :visible.sync="dialog2" width="40%" center :close-on-click-modal='false'>
 	      <div class="createNewUnit">
 	        <div>
 	          <div class="label">*挂账单位名称</div>
@@ -111,21 +126,20 @@
 	      </div>
 	      <span slot="footer" class="dialog-footer">
 	        <el-button @click="dialog2 = false">返回上一步</el-button>
-	        <el-button type="primary" @click="dialog2 = false">确 定</el-button>
+	        <el-button type="primary" @click="newCompany">保 存</el-button>
 	      </span>
 	    </el-dialog>
+			<newSelf ref='newSelf' :carNumber='carNumber' ></newSelf>
 	  </div>
 </template>
 
 <script>
+	import newSelf from './newSelf.vue'
 	export default {
 		components: {
-
+			newSelf
 		},
 			props:{
-				company:{
-					type:Array,
-				},
 				buyerAlert:{
 				type:Boolean,
 				},
@@ -135,6 +149,10 @@
 				},
 		data () {
 			return {
+				company:[],
+				personage:[],
+				msg:'',
+				merchantCode:'',
 				      dialog1: false, //挂账弹窗控制显示
 				      dialog2: false, //新建挂账单位弹窗控制显示
 				      radio: "1", //单位挂账1   个人挂账2  课更改为对应类型Id
@@ -143,6 +161,7 @@
 				      phone: "", //个人挂账的电话
 				      textarea: "", //短信提示内容
 				      unitValue: "", //选择的单位
+				      unitValue2: "", //选择的单位
 				      newUnit:{      //创建新单位的数据
 				          name:'',
 				          people:'',
@@ -160,29 +179,68 @@
 				})
 				return this.company
 			},
+			options2(){
+				this.personage.map(val => {
+					val.value=val.code
+					val.label=val.name+'/'+val.phone
+				})
+				return this.personage
+			},
 		},
 		methods: {
-
-			// addCompany(){
-			// 	this.$http.get('/onAccount/onAccount',{
-			// 		    name:newUnit.name:'',
-			// 		    contactPerson:newUnit.people:'',
-			// 		    contactPhone:newUnit.telphone:'',
-			// 		    address:newUnit.address:'',
-			// 		    remark:newUnit.remark:'',
-							
-					
-			// 	}).then(res => {
-					
-			// 	})
-			// },
+			getComponys(){
+				this.$http.get('/onAccount/onAccountList_T',{
+					merChantCode:this.$route.query.merchantCode,
+					pageNum:1,
+					pageSize:999,
+					name:'',
+					vehicleCode:this.carNumber
+				}).then(res => {
+					this.company=res.data
+				})
+			},
+			getPersonage(){//获取挂账人
+				this.$http.get('/onAccount/getUserOnAccountList',{
+					merchantCode:this.$route.query.merchantCode,
+					plateNum:this.carNumber,
+					condition:'',
+				}).then(res => {
+					this.personage=res.data
+				})
+			},
+			handleDialogClose(){
+				this.$parent.buyerAlert=false
+			},
+			addPer(){
+				this.$refs.newSelf.dialogVisible=true
+			},
+			newCompany(){//新建挂账单位
+			let params = {
+				merchantCode:this.$route.query.merchantCode,
+				name:this.newUnit.name,
+				contactPerson:this.newUnit.people,
+				contactPhone:this.newUnit.telphone,
+				address:this.newUnit.address,
+				remark:this.newUnit.remark,
+				vehicleCode:this.carNumber,
+				id:'',
+			}
+				this.$http.post('/onAccount/onAccount',params).then(res => {
+					if(res.code='10000'){
+						this.dialog2  = false
+					}else{
+						alert(res.message)
+					}
+				})
+			},
 			radioChange(val){
 				console.log(val)
 				if(val==2){
 					this.unitValue=''
 				}else{
-					this.phone=''
+					this.unitValue2=''
 				}
+				this.getMsg()
 			},
 			//新建挂账单位
 			    createUnit() {
@@ -192,23 +250,30 @@
 			close(){
 				this.$emit('closeBuyerAlert')
 			},
+			getMsg(){
+				this.$http.get('/system/getOnAcountSMSMessage',{
+					merchantCode:this.$route.query.merchantCode,
+					plateNumber:this.carNumber,
+					onAccountType:this.radio==1?'2':'1'//挂账类型（1-个人、2-单位）
+				}).then(res=>{
+					this.msg=res.data
+				})
+			},
 			// 确认按钮
 		buyerConfirm(){
 			let val = {
-				isBuyoncredit:this.radio,//挂账类型(挂账类型 1:单位 2:个人)
-				onAccountId:this.unitValue.id,//挂账单位id
-				onAccountName:this.unitValue.name,//挂账单位名称
-				toPhone:this.radio==1?this.unitValue.contactPhone:this.phone,//发送的手机号
+				onAccountType:this.radio==1?'2':'1',//挂账类型(挂账类型 1:单位 2:个人)
+				onAccountId:this.radio==1?this.unitValue.id:this.unitValue2.code,//挂账单位id
+				toPhone:this.radio==1?this.unitValue.contactPhone:this.unitValue2,//发送的手机号
 				estimateBlanceTime:this.chooseDate,//预计结算时间
 				flag:this.SMS,//是否发送短信
-				action:this.textarea,
 			}
 			this.$emit('buyerConfirm',val)
 			setTimeout(()=> {
 				this.radio= "1", //单位挂账1   个人挂账2  课更改为对应类型Id
 				this.SMS= "0", //短信提醒    是1 否0
 				this.chooseDate= "", //选择的日期
-				this.phone= "", //个人挂账的电话
+				this.unitValue2= "", //个人挂账的电话
 				this.textarea= "", //短信提示内容
 				this.unitValue= "", //选择的单位
 				this.newUnit={      //创建新单位的数据
@@ -220,11 +285,13 @@
 				}
 			}, 1000);
 		}
+		
 		},
 mounted() {
 
 },
 created() {
+	this.getMsg()
 }, //生命周期 - 创建之后
 	}
 </script>

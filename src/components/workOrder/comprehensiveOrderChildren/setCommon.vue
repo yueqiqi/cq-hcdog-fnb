@@ -1,68 +1,12 @@
 <template>
   <div>
-<!--   <div>
-      <el-button type="primary" @click="popShopServeVisible = true"
-        >设置常用项目</el-button
-      >
-    </div>
-    <div class="head">
-      <span class="title">常用服务</span>
-      <span class="discribe">在维修工单处常用项目模块使用</span>
-    </div>
-    <el-table
-      :data="tableData1"
-      style="width: 100%"
-      :header-cell-style="{ background: '#eef1f6' }"
-    >
-      <el-table-column prop="name" label="服务名称" align="center">
-      </el-table-column>
-      <el-table-column prop="twoCategoryName" label="服务二级分类" align="center">
-      </el-table-column>
-      <el-table-column prop="threeCategoryName" label="服务三级分类" align="center">
-      </el-table-column>
-      <el-table-column prop="standardPrice" label="销售价格/元" align="center">
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template slot-scope="scope">
-          <el-button type="text" @click="handleDel(scope.$index, scope.row)"
-            >删除</el-button
-          >
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-table
-      :data="tableData2"
-      style="width: 100%"
-      :header-cell-style="{ background: '#eef1f6' }"
-    >
-      <el-table-column prop="name" label="商品名称" align="center">
-      </el-table-column>
-      <el-table-column prop="twoCategoryName" label="商品二级分类" align="center">
-      </el-table-column>
-      <el-table-column prop="threeCategoryName" label="商品三级分类" align="center">
-      </el-table-column>
-      <el-table-column prop="brandName" label="品牌" align="center"> </el-table-column>
-      <el-table-column prop="specification" label="规格" align="center"> </el-table-column>
-      <el-table-column prop="snCode" label="条形码" align="center">
-      </el-table-column>
-      <el-table-column prop="oemCode" label="OEM编码" align="center">
-      </el-table-column>
-      <el-table-column prop="unit" label="单位" align="center"> </el-table-column>
-      <el-table-column prop="standardPrice" label="销售价格/元" align="center">
-      </el-table-column>
-      <el-table-column label="操作" align="center">
-        <template slot-scope="scope">
-          <el-button type="text" @click="handleDel(scope.$index, scope.row)"
-            >删除</el-button
-          >
-        </template>
-      </el-table-column>
-    </el-table> -->
     <el-dialog
       :visible.sync="popShopServeVisible"
       center
       width="60%"
-      title="选择服务和商品"
+			:close-on-click-modal='false'
+      title="设置常用项"
+			:show-close='false'
     >
       <div class="popShopServeLeft">
         <el-tabs
@@ -260,15 +204,15 @@ export default {
   },
   methods: {
     //常用服务或商品删除
-    // async handleDel(index, row) {
-    //   console.log(index, row);
-    //   console.log(row.code)
-    //   let res=await this.$http.get('/system/setFastOrder',{
-    //     merchantCode:this.Mcode,
-    //     code:row.code,
-    //   })
-    //   console.log(res)
-    // },
+    async handleDel(index, row) {
+      console.log(index, row);
+      console.log(row.code)
+      let res=await this.$http.get('/system/setFastOrder',{
+        merchantCode:this.Mcode,
+        code:row.code,
+      })
+      console.log(res)
+    },
     //商品和服务弹窗中的Tab切换
     popShopServeClick() {
       this.initData = []; //初始化table三级数据
@@ -286,6 +230,7 @@ export default {
     },
     //当服务被选择时候返回的下标
     ServeSelect(key, keyPath) {
+      console.log(key, keyPath);
       this.getLevel3(key);
     },
     //获取三级数据
@@ -300,16 +245,15 @@ export default {
           let { data } = res
           data.forEach((item) => {
             item.selected = false
-						item.goodsCome = 3;
-						item.goodsCount = 1;
-						item.num = item.goodsCount;
           })
           this.initData = data
+          console.log(this.initData)
         });
     },
     //当选中状态发生改变时
     selectedClick(boolean, row) {
       //boolean为true时为选中，false为取消选中
+      console.log(boolean, row);
       if (boolean) {
         this.selectedGoods.push(row);
       } else {
@@ -324,18 +268,60 @@ export default {
           this.selectedGoods.splice(Len, 1);
         }
       }
+      console.log(this.selectedGoods)
+      this.tableData.forEach(items=>{     //表格中的选择状态跟新
+        if(items.goodsCode==item.goodsCode){
+          items.selected=false
+        }
+      })
     },
     //商品和服务点击确定
-     serveShopEnSure() {
-      // let arr=[]
-      // this.ensureSelect=JSON.parse(JSON.stringify(this.selectedGoods))
-      // this.ensureSelect.forEach(item=>{
-      //   arr.push(item.goodsCode)
-      // })
-      // let goodsCodes=arr.join(',')
-      // console.log('商品和服务点击确定',this.selectedGoods)
-			this.$emit('onfirm',this.selectedGoods)
+    async serveShopEnSure() {
+      let arr=[]
+      this.ensureSelect=JSON.parse(JSON.stringify(this.selectedGoods))
+      console.log(this.ensureSelect)
+      this.ensureSelect.forEach(item=>{
+        arr.push(item.goodsCode)
+      })
+      let goodsCodes=arr.join(',')
+      let res=await this.$http.get('/system/batchAddFastOrder',{
+        merchantCode:this.Mcode,
+        goodsCodes,
+      })
+      if(res.successful){
+      //   this.getUsuallyData()  //获已经设置的常用项
+			this.selectedGoods=[]
+			this.ensureSelect=[]
+			this.getList()
+			
+      }
     },
+		getList(){
+			this.$http
+				.get('/LaborGoods/findLaborSynthesizeFastOrderGoods', {
+					merchantCode: this.$route.query.merchantCode
+				})
+				.then(res => {
+					if (res.code == '10000') {
+						this.popShopServeVisible=false
+						res.data.map(item => {
+							item.goodsCode = item.code;
+							item.goodsCome = 2;
+							item.price=item.standardPrice
+							item.serviceTime=item.serviceMinutes
+							item.goodsName=item.name
+							item.goodsVipId = null;
+							item.num = 1;
+							item.isGift=0
+							item.mapList=[]
+							item.goodsCount = item.num;
+							item.selected=false
+							item.subtotalMoney=item.goodsCount*item.price
+						});
+						this.$parent.list=res.data
+					}
+				});
+		},
     //模糊查询商品服务服务
     async search(){
       let res=await this.$http.get('/LaborGoods/listByCategoryForWork',{
@@ -343,37 +329,32 @@ export default {
         condition:this.searchContent
       })
       if(res.successful){
-				res.data.map(item => {
-					item.selected = false
-					item.goodsCome = 3;
-					item.goodsCount = 1;
-					item.num = item.goodsCount;
-				})
-				
         let searchData=res.data
-        // searchData.forEach(item=>{
-        //   item.selected=false
-        // })
+        searchData.forEach(item=>{
+          item.selected=false
+        })
         this.initData=searchData
+        console.log(this.initData)
       }
     },
     //获已经设置的常用项
-    // async getUsuallyData(){
-    //   let res=await this.$http.get('/system/fastOrderGoods',{
-    //     merchantCode:this.Mcode
-    //   })
-    //   if(res.successful){
-    //     let {data}=res
-    //     this.tableData1=data.filter(item=>item.type==2)          //商品类型:1 - 实物商品; 2 - 服务商品; 3 - 虚拟商品; 4 - 实物+服务
-    //     this.tableData2=data.filter(item=>item.type==1)
-    //   }
-    // },
+    async getUsuallyData(){
+      let res=await this.$http.get('/system/fastOrderGoods',{
+        merchantCode:this.Mcode
+      })
+      console.log('获已经设置的常用项',res)
+      if(res.successful){
+        let {data}=res
+        this.tableData1=data.filter(item=>item.type==2)          //商品类型:1 - 实物商品; 2 - 服务商品; 3 - 虚拟商品; 4 - 实物+服务
+        this.tableData2=data.filter(item=>item.type==1)
+      }
+    },
     
   },
   created() {
     // this.$getCode() //获取商家编码操作人id
-		this.Mcode=this.$route.query.merchantCode
     // this.getUsuallyData()  //获已经设置的常用项
+		this.Mcode=this.$route.query.merchantCode
     this.$http
       .get("/LaborGoods/categoryList",{
           merchantCode:this.Mcode,
@@ -382,6 +363,7 @@ export default {
         }
       )
       .then((res) => {
+				console.log('左边分类',res)
         this.servesData = res.data;
       });
   },

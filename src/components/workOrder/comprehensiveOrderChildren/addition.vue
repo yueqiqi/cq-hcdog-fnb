@@ -3,7 +3,7 @@
 	<div class=''>
 		<el-dialog @close='close' title="附加费用" :close-on-click-modal='false' center="" :visible.sync="isShowAddition" width="40%">
 			<el-input v-model="add" maxlength='10' placeholder='请输入附加费类别,不超过10字'>
-				<el-button slot="append" @click='adds' type='primary' style="background: #409eff;color:#fff;border-top-left-radius: 0;border-bottom-left-radius: 0;border:1px solid #409eff">添 加</el-button>
+				<el-button slot="append" @click='adds' type='primary' style="background: #409eff;color:#fff;border-top-left-radius: 0;border-bottom-left-radius: 0;border:1px solid #409eff" :disabled="addlists.length>10">添 加</el-button>
 			</el-input>
 			<div class="d-flex" style="align-items: center;">
 				<h3>附加费列表</h3>

@@ -231,7 +231,7 @@ export default {
 	computed: {
 		Allarr() {
 			return this.arr.concat(this.arr2);
-		}
+		},
 	},
 	methods: {
 		changeChild(){

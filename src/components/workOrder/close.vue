@@ -199,7 +199,8 @@
 		<timesCard :timersCardShow="timersCardShow" :vipCards="onceGoodsListAll" :timeCardList="showtimeCardList" @confirmTimers="confirmTimers" @closeTimers="closeTimers"></timesCard>
 
 		<!-- 兑换码弹窗 -->
-		<codes :codeShow="codeShow" :alertCodeList="alertCodeList" @confirmCode="confirmCode" @closeCode="closeCode"></codes>
+		<!--  -->
+		<codes :codeShow="codeShow" ref='codes' :alertCodeList="alertCodeList"  @confirmCode="confirmCode" @closeCode="closeCode"></codes>
 		<!-- 优惠券 -->
 		<coupon :couponIsShow="couponIsShow" :couponList="couponList" @confirmCoupon="confirmCoupon" @closeCoupon="closeCoupon"></coupon>
 
@@ -386,7 +387,6 @@ export default {
 					notifyCardOwner: this.isMes //扣卡后是否通知持卡人
 				})
 				.then(res => {
-					console.log('%c请求工单结算结果', 'color:red;font-size:20px', res);
 					if (res.code == 'success') {
 						// window.sessionStorage.setItem('financialClose',(res.data))
 						this.$router.push({
@@ -450,13 +450,13 @@ export default {
 		},
 		// 确认按钮
 		confirmCode(val) {
-			console.log('确认兑换码弹窗', val);
 			this.codeList = val;
-			val.map(item => {
-				if (item.type == 2) {
-					this.codeDis += Number(item.price);
-				}
-			});
+			// val.map(item => {
+			// 	if (item.type == 2) {
+			// 		this.codeDis += Number(item.price);
+			// 	}
+			// });
+			// this.getEditfindOrderInfo(val,this.vipList)
 			this.codeShow = false;
 		},
 		closeCode() {
@@ -573,14 +573,19 @@ export default {
 					type: this.radio
 				})
 				.then(res => {
-					console.log('%c请求兑换码识别结果', 'color:red;font-size:20px', res);
 					if (res.data.status == 'true') {
+						this.codeShow = true;
+						this.codeShow=false
 						res.data.exchangeCode = this.importCode;
 						this.alertCodeList.push(res.data);
+						this.codeList = this.alertCodeList;
 						this.addCodes = false;
+						// this.$refs.codes.first()
+						// this.$refs.
+						this.getEditfindOrderInfo(this.alertCodeList,this.vipList)
 						this.importCode = '';
 					} else {
-						alert('该兑换码已被使用或者暂无该兑换码');
+						alert('该兑换码已被使用或者暂无该兑换码'+res.message);
 					}
 				});
 		},
@@ -626,7 +631,7 @@ export default {
 			// 	this.timeCardList=[]
 			// }
 			// this.getBalance(this.vipList)
-			this.getEditfindOrderInfo([],this.vipList)
+			this.getEditfindOrderInfo(this.codeList,this.vipList)
 			// console.log("vipList: " , this.vipList);
 		},
 
@@ -888,17 +893,18 @@ export default {
 				benefit :Number(this.favMoney),//优惠金额
 				notifyCardOwner :this.isMes,//是否短信通知
 				vipCards,//选中的会员卡列表
+				laborAdditionalFeeList:this.laborAdditionalFeeList,//附加费用
 			}).then(res => {
 				this.vipCount=res.data.deduction//会员卡抵扣金额
 				this.shouldPay=res.data.shouldPay//应收金额
 				this.dataShouldPay=res.data.shouldPay
 				this.favMoney=0
-				// this.redeemVerification=res.data.redeemVerification//兑换码核销//
+				this.redeemVerification=res.data.redeemVerification//兑换码核销//
+				this.codeDis=res.data.redeemVerification//兑换码核销//
 				this.balance=res.data.cardBalance  //卡余额
 				this.thisBalance=res.data.specialDeduction//本次使用金额
 				this.showtimeCardList=res.data.onceGoodsConsumeList//次卡商品集合 
 				this.onceGoodsListAll=res.data.onceGoodsListAll//次卡商品弹窗左侧展示的数据
-				
 			})
 		}
 	},
