@@ -77,11 +77,18 @@
 					</template>
 				</el-table-column>
 			</el-table>
-			<div class="lastTimeRemark" style="margin-top: 20px;padding-left: 25px;padding-top: 20px;">
-				<el-input style="width: 250px;" placeholder="搜索商品/品牌/规格" v-model="manOurSearch" :disabled='dis'>
+			<div class="lastTimeRemark" style="margin-top: 20px;padding-left: 25px;padding-top: 20px;display: flex;">
+				<el-input style="width: 250px;" placeholder="搜索商品/品牌/规格" @focus="showPartsNoVip" v-model="manOurSearch" :disabled='dis'>
 					<el-button slot="append" icon="el-icon-search" @click='showPartsNoVip'></el-button>
 				</el-input>
+				<div>
+					
+				<!-- <selectGoods ref='selectGoods' :dis='dis' type='goods' @close='selectGoods' @selectionChange='selectGoods'></selectGoods> -->
+				</div>
+				<div>
+					
 				<el-button @click='openNp' style="margin-left: 15px;" type="text" :disabled='dis'>没搜到?新建商品</el-button>
+				</div>
 			</div>
 			
 			
@@ -99,15 +106,20 @@
 	import emp from '../../Alert/chooseEmp.vue';
 	// 打开维修/保养项目(配件)--无会员卡
 	import pnv from './partsUseVip'
+	import selectGoods from './select1.vue'
 	// 打开新建服务
 	import newproduct from './newProduct.vue'
 	export default {
 		components: {
 			newproduct,
 			pnv,
+			selectGoods,
 		emp,
 		},
 			props:{
+				Elist:{
+					type:Array
+				},
 				dis:{
 				type:Boolean,
 				},
@@ -142,9 +154,15 @@
 			};
 		},
 		computed: {
-
+		// this.manOur
 		},
 		methods: {
+			selectGoods(val,type){
+				console.log('type',type)
+				if(type=='goods'){
+					this.$parent.manOur2=this.uniqs(this.$parent.manOur2.concat(val));
+				}
+			},
 			/**
 			 * 获取新建服务分类的 一 二 三级列表
 			 */
@@ -276,23 +294,18 @@
 		// 设为赠品
 		set(index,rows){
 			var totalPrice = 0;//临时总价
-			// rows[index].isGift=1
 			this.manOur[index].subtotalMoney=0
 			this.manOur[index].goodsCount=1
 			this.$set(this.manOur[index],'isGift',1)
-			// rows[index].subtotal = 0;
-			// this.manOur[index].price = 0;
-			// rows[index].subtotal=0
-			// console.log(rows)
-			// this.manOur.forEach(function(val,index){
-			// 	totalPrice += val.subtotal*val.num;//累计总价
-			// })
-			// this.all =parseFloat(totalPrice);
 		},
 		// 删除本行信息
 		deleteRow(index, rows) {
+			this.$bus.$emit('delRows',this.manOur[index])
+			// this.manOur[index].goodsCount=1
+			this.$set(this.manOur[index],'goodsCount',1)
+			this.$set(this.manOur[index],'isGift',0)
+			// rows[index].goodsCount=1
 			rows.splice(index,1)
-			// this.$bus.$emit('delRows',rows[index])
 		},
 		
 		//确定按钮

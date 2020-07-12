@@ -1,2 +1,5 @@
 .DS_Store
 node_modules/
+hexo.txt
+src/components/demo.vue
+src/components/demo2.vue

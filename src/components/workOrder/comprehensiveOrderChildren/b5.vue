@@ -54,11 +54,18 @@
 					</template>
 				</el-table-column>
 			</el-table>
-			<div class="lastTimeRemark" style="margin-top: 20px;padding-left: 25px;padding-top: 20px;">
-				<el-input style="width: 250px;" placeholder="搜索商品/品牌/规格" v-model="manOurSearch" :disabled='dis'>
+			<div class="lastTimeRemark" style="margin-top: 20px;padding-left: 25px;padding-top: 20px;display: flex;">
+				<el-input style="width: 250px;" placeholder="搜索商品/品牌/规格" @focus="showPartsNoVip" v-model="manOurSearch" :disabled='dis'>
 					<el-button slot="append" icon="el-icon-search" @click='showPartsNoVip'></el-button>
 				</el-input>
+				<div>
+					
+				<!-- <merchant type="merchant" :dis="dis" ref='merchant' @close='selectMerchant' @selectionChange='selectMerchant'></merchant> -->
+				</div>
+				<div>
+					
 				<el-button @click='openNp' style="margin-left: 15px;" type="text" :disabled='dis'>没搜到?新建商品(配件)</el-button>
+				</div>
 			</div>
 			
 			
@@ -71,12 +78,14 @@
 
 <script>
 	import	newproduct from './newProduct.vue'
+	import merchant from './select1.vue'
 	// 打开维修/保养项目(配件)--无会员卡
 	import pnv from './partsNoVip'
 	export default {
 		components: {
 			pnv,
-			newproduct
+			newproduct,
+			merchant
 		},
 	props:{
 		dis:{
@@ -111,6 +120,12 @@
 
 		},
 		methods: {
+			selectMerchant(val,type){
+				if(type=='merchant'){
+					this.$parent.manOur3=this.uniqs(this.$parent.manOur3.concat(val));
+				}
+			},
+			
 			/**
 			 * 获取新建服务分类的 一 二 三级列表
 			 */
@@ -122,7 +137,6 @@
 					type,
 				})
 				.then(res=>{
-					 console.log('%c请求新建服务分类的 一 二 三级列表结果','color:red;font-size:20px',res)
 					 if(res.code == '10000'){
 						 res.data.map(item => {
 							 item.value=item.code+','+item.name

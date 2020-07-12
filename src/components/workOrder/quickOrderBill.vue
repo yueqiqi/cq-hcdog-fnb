@@ -100,7 +100,7 @@
 			<div class="d-flex" style="margin-left: 10px;">
 				<!--  -->
 				<el-button type="text" @click="setCompAlert" :disabled="dis" v-if="orderStatus!=3&&orderStatus!=2">完工</el-button>
-				<el-button type="text" @click="setBuyerAlert" :disabled="dis">挂账</el-button>
+				<!-- <el-button type="text" @click="setBuyerAlert" :disabled="dis">挂账</el-button> -->
 			</div>
 		</div>
 		<!-- 选择销售施工弹窗 -->
@@ -394,6 +394,9 @@ this.$store.commit('list',this.List)
 					merchantCode: this.merchantCode,
 					workOrderCode:this.form.workOrderCode,
 					brandName:this.form.brandName,
+					customerCodeOther:this.customerCodeOther,
+					customerPhoneOther :this.customerPhoneOther ,
+					customerNameOther :this.customerNameOther ,
 					orderId,
 					goodsCome,
 					goodsVipId,
@@ -973,7 +976,7 @@ this.$store.commit('list',this.List)
 			console.log(this.List);
 			this.inputShow = false;
 			this.List.forEach(function(val, index) {
-				totalPrice += val.subtotal * val.goodsCount; //累计总价
+				totalPrice += val.subtotal ; //累计总价
 			});
 			this.all = parseFloat(totalPrice);
 		},
@@ -1052,7 +1055,7 @@ this.$store.commit('list',this.List)
 			// this.List=rows
 			this.$set(this.List,index,rows)
 			this.List.forEach(function(val, index) {
-				totalPrice += val.subtotal * val.goodsCount; //累计总价
+				totalPrice += val.subtotal ; //累计总价
 			});
 			this.all = parseFloat(totalPrice);
 			this.$store.commit('list',this.List)
@@ -1083,10 +1086,8 @@ this.$store.commit('list',this.List)
 
 		handleChange(idx,row) {
 			// this.$set(this.List, idx, row);
-			console.log(this.List);
 			var totalPrice = 0; //临时总价
 			// 计算小计
-			console.log('变化的数据',this.List)
 			this.List[idx].subtotal=(Number(this.List[idx].goodsCount)*Number(this.List[idx].price)).toFixed(2)
 			// this.List.map(item=>{
 			// 	item.subtotal=(Number(item.goodsCount)*Number(item.price)).toFixed(2)
@@ -1094,8 +1095,7 @@ this.$store.commit('list',this.List)
 			// 计算总价
 			this.List.forEach(function(val, index) {
 				totalPrice += Number(val.subtotal); //累计总价
-			});
-			console.log(this.List);
+			});;
 			this.all = parseFloat(totalPrice);
 			this.$store.commit('list',this.List)
 		},

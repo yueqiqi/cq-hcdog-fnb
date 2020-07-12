@@ -22,13 +22,13 @@
 		<div style="margin-top: 50px;">
 			<el-row style="align-items: center;display: flex;">
 				
-			<el-col :span='14'><div class="font-big">已选项目{{list.length}}个</div></el-col>
+			<el-col :span='14'><div class="font-big">已选项目{{listed.length}}个</div></el-col>
 			<el-col :span="10"  style="align-items: center;">
 				<el-button type='text' style="text-decoration: underline;font-size: 14px;" @click='look'>查看工单详情></el-button>
 			</el-col>
 			</el-row>
 			
-			<el-table @cell-click="cellClick" :header-cell-style="{color:'#333',fontSize:'14px',background:'#ccc'}" border :data="list" style="width: 70%;">
+			<el-table @cell-click="cellClick" :header-cell-style="{color:'#333',fontSize:'14px',background:'#ccc'}" border :data="listed" style="width: 70%;">
 				<el-table-column align='center' prop='goodsName' label="项目"></el-table-column>
 				<el-table-column align="center" prop='price' label="价格">
 					<template slot-scope="scope">
@@ -189,6 +189,7 @@ emp,
 				
 				
 				list:[],
+				laborAdditionalFeeList:[],
 				// 本次公里数
 					kil:'12314',
 					// 时间
@@ -202,7 +203,9 @@ emp,
 			};
 		},
 		computed: {
-
+			listed(){
+				return this.list.concat(this.laborAdditionalFeeList)
+			},
 		},
 		methods: {		
 			/**
@@ -221,6 +224,15 @@ emp,
 						this.fuWuGiftTimes=res.data.fuWuGiftTimes
 						this.goodsGiftTimes=res.data.goodsGiftTimes
 						this.laborOrder=res.data.settleaccounts
+						let fee = res.data.laborAdditionalFeeList||[]
+						if(fee.length>0){
+							fee.map(val => {
+								val.goodsName=val.name
+								val.goodsCount=1
+								val.subtotalMoney=val.price
+							})
+							this.laborAdditionalFeeList = fee
+						}
 						this.list=res.data.goodsList
 						this.remark=res.data.settleaccounts.additionalRemarks
 						this.list.map(item => {

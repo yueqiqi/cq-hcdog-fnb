@@ -124,6 +124,7 @@
 				</el-col>
 				</el-row> -->
 				<div style="color: #666666;text-align: left;margin-top: 1.25rem;" class="remark">*备注：<span>{{laborOrder.remarks}}</span></div>
+				<div style="color: #666666;text-align: left;margin-top: 1.25rem;" class="remark">温馨提示：<span>{{remarks}}</span></div>
 				<div style="margin-top: 1.5625rem;margin-bottom: 1.5625rem;color: #666666;text-align: left;">门店地址：<span>{{laborOrder.merchantAddress}}</span></div>
 				<el-row style="color: #666666">
 					<el-col :span="12"><div style="text-align: left;">联系电话：<span>{{laborOrder.merchantPhone}}</span></div></el-col>
@@ -183,6 +184,7 @@
 				// // 工单编号
 				// orderNum:'1910100094100584',
 				type:'结算单',
+				remarks:'',
 				// 应付金额
 				resPrice:0,
 				company:'XXXXX',
@@ -222,8 +224,14 @@ mounted() {
 },
 created() {
 	this.laborOrder=this.$route.params.data
+	this.$http.get('/system/getPrintByMerchantCode',{
+		merchantCode:this.laborOrder.merchantCode,
+		orderType:this.$route.params.type=='结算单'?1:3
+	}).then(res => {
+		this.remarks=res.data.remark
+	})
 	let list=this.$route.params.list
-	console.log('%c额就是那','color:#70ff57;font-size:20px;font-weight:bold',list)
+	console.log('%c额就是那','color:#70ff57;font-size:20px;font-weight:bold',list,this.$route.params)
 	list.map(item => {
 		if(item.type==1){
 			this.t2.push(item)

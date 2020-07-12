@@ -37,7 +37,7 @@
 					&nbsp;&nbsp;
 					<div class="font-big" style="">{{ laborOrder.workorderCode }}</div>
 				</el-col>
-				<el-table @cell-click="cellClick" :header-cell-style="{ color: '#333', fontSize: '14px', background: '#ccc' }" border :data="list" style="width: 60%;">
+				<el-table @cell-click="cellClick" :header-cell-style="{ color: '#333', fontSize: '14px', background: '#ccc' }" border :data="listed" style="width: 60%;">
 					<el-table-column align="center" prop="goodsName" label="项目"></el-table-column>
 					<el-table-column align="center" prop="price" label="价格">
 						<template slot-scope="scope">
@@ -132,15 +132,15 @@
 						<td style="text-align: left;padding-left: 30px;">兑换码</td>
 						<td class="d-flex" style="width: 700px;border: 0;padding:20px;padding-left: 40px;">
 							<div class="d-flex" style="align-items: center;width: 150px;">
-								<!-- @click="codeListIsShow" -->
-								<div class="underline"  style="color: #C0C4CC;">{{ alertCodeList.length }}张</div>
+								<!-- @click="codeListIsShow"  style="color: #C0C4CC;" -->
+								<div class="underline" @click="codeListIsShow">{{ alertCodeList.length }}张</div>
 								<div>可用兑换码</div>
 							</div>
 
 							<div v-for="(item, index) in codeList" :key="index" style="margin-right: 10px;align-items: center" class="d-flex">
 								<div>{{ item.name }}</div>
 							</div>
-							<el-button disabled="true" type="text" @click="addCode">添加新兑换码</el-button>
+							<el-button  type="text" @click="addCode">添加新兑换码</el-button>
 						</td>
 					</tr>
 				</table>
@@ -199,7 +199,8 @@
 		<timesCard :timersCardShow="timersCardShow" :vipCards="onceGoodsListAll" :timeCardList="showtimeCardList" @confirmTimers="confirmTimers" @closeTimers="closeTimers"></timesCard>
 
 		<!-- 兑换码弹窗 -->
-		<codes :codeShow="codeShow" :alertCodeList="alertCodeList" @confirmCode="confirmCode" @closeCode="closeCode"></codes>
+		<!--  -->
+		<codes :codeShow="codeShow" ref='codes' :alertCodeList="alertCodeList"  @confirmCode="confirmCode" @closeCode="closeCode"></codes>
 		<!-- 优惠券 -->
 		<coupon :couponIsShow="couponIsShow" :couponList="couponList" @confirmCoupon="confirmCoupon" @closeCoupon="closeCoupon"></coupon>
 
@@ -339,6 +340,7 @@ export default {
 			// 工单编号
 			orderNum: '',
 			list: [],
+			laborAdditionalFeeList:[],
 			// 会员卡抵扣金额
 			onceCardDiscount: 0,
 
@@ -347,7 +349,9 @@ export default {
 		};
 	},
 	computed: {
-
+		listed(){
+			return this.list.concat(this.laborAdditionalFeeList)
+		},
 		shouldPay(){
 			let price = 0
 		return	Number(this.dataShouldPay-this.favMoney).toFixed(2)
@@ -357,14 +361,15 @@ export default {
 		/**
 		 * 工单结算
 		 */
-		close(goodsList, vipNumber, cardBalance, vipCards, onceGoodsList, coupons, deduction, orderPrice, redeemCode, benefit, giftObj, giftService) {
-			console.log('抵扣金额', Number(this.discount))
+		close() {
+			console.log('抵扣金额', this.showtimeCardList)
 					this.onceClick=true
 			this.$http
 				.post('/LaborBlance/balance/order', {
 					employeeId: localStorage.getItem('createId')||'',
 					laborOrder: this.laborOrder, //	object	工单对象
 					goodsList: this.list, //	array	商品集合
+					laborAdditionalFeeList:this.laborAdditionalFeeList,//附加费用
 					vipNumber: this.vipNum, //	int	会员卡数量
 					cardBalance: Number(this.balance), //	int	卡余额
 					vipCards: this.vipList, //	array	会员卡集合
@@ -382,7 +387,6 @@ export default {
 					notifyCardOwner: this.isMes //扣卡后是否通知持卡人
 				})
 				.then(res => {
-					console.log('%c请求工单结算结果', 'color:red;font-size:20px', res);
 					if (res.code == 'success') {
 						// window.sessionStorage.setItem('financialClose',(res.data))
 						this.$router.push({
@@ -446,13 +450,13 @@ export default {
 		},
 		// 确认按钮
 		confirmCode(val) {
-			console.log('确认兑换码弹窗', val);
 			this.codeList = val;
-			val.map(item => {
-				if (item.type == 2) {
-					this.codeDis += Number(item.price);
-				}
-			});
+			// val.map(item => {
+			// 	if (item.type == 2) {
+			// 		this.codeDis += Number(item.price);
+			// 	}
+			// });
+			// this.getEditfindOrderInfo(val,this.vipList)
 			this.codeShow = false;
 		},
 		closeCode() {
@@ -569,14 +573,19 @@ export default {
 					type: this.radio
 				})
 				.then(res => {
-					console.log('%c请求兑换码识别结果', 'color:red;font-size:20px', res);
 					if (res.data.status == 'true') {
+						this.codeShow = true;
+						this.codeShow=false
 						res.data.exchangeCode = this.importCode;
 						this.alertCodeList.push(res.data);
+						this.codeList = this.alertCodeList;
 						this.addCodes = false;
+						// this.$refs.codes.first()
+						// this.$refs.
+						this.getEditfindOrderInfo(this.alertCodeList,this.vipList)
 						this.importCode = '';
 					} else {
-						alert('该兑换码已被使用或者暂无该兑换码');
+						alert('该兑换码已被使用或者暂无该兑换码'+res.message);
 					}
 				});
 		},
@@ -622,7 +631,7 @@ export default {
 			// 	this.timeCardList=[]
 			// }
 			// this.getBalance(this.vipList)
-			this.getEditfindOrderInfo([],this.vipList)
+			this.getEditfindOrderInfo(this.codeList,this.vipList)
 			// console.log("vipList: " , this.vipList);
 		},
 
@@ -752,8 +761,18 @@ export default {
 								item.subtotalMoney = 0;
 							}
 						});
-						// 项目明细
-						this.list = res.data.goodsList;
+						// 附加费用
+						let fee = res.data.laborAdditionalFeeList||[]
+						if(fee.length>0){
+							fee.map(val => {
+								val.goodsName=val.name
+								val.goodsCount=1
+								val.subtotalMoney=val.price
+							})
+							this.laborAdditionalFeeList = fee
+						}
+							// 项目明细
+							this.list = res.data.goodsList;
 
 						// 业务结算
 						// 1.会员卡数量
@@ -775,7 +794,7 @@ export default {
 						// });
 
 						this.showtimeCardList = res.data.onceGoodsConsumeList;
-						
+						console.log('shanp ',this.showtimeCardList)
 						this.arrId = arr;
 						// 4.次卡商品集合
 						//4-1 次卡张数
@@ -874,17 +893,18 @@ export default {
 				benefit :Number(this.favMoney),//优惠金额
 				notifyCardOwner :this.isMes,//是否短信通知
 				vipCards,//选中的会员卡列表
+				laborAdditionalFeeList:this.laborAdditionalFeeList,//附加费用
 			}).then(res => {
 				this.vipCount=res.data.deduction//会员卡抵扣金额
 				this.shouldPay=res.data.shouldPay//应收金额
 				this.dataShouldPay=res.data.shouldPay
 				this.favMoney=0
-				// this.redeemVerification=res.data.redeemVerification//兑换码核销//
+				this.redeemVerification=res.data.redeemVerification//兑换码核销//
+				this.codeDis=res.data.redeemVerification//兑换码核销//
 				this.balance=res.data.cardBalance  //卡余额
 				this.thisBalance=res.data.specialDeduction//本次使用金额
 				this.showtimeCardList=res.data.onceGoodsConsumeList//次卡商品集合 
 				this.onceGoodsListAll=res.data.onceGoodsListAll//次卡商品弹窗左侧展示的数据
-				
 			})
 		}
 	},
