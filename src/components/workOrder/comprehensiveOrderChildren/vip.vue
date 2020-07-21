@@ -226,18 +226,22 @@
 						 res.data.specialService.map(item => {
 							 item.num = 1
 							 item.goodsCount = item.num;
+							 item.subtotalMoney=item.price*item.goodsCount||0
 						 })
 						 res.data.specialGoods.map(item => {
 							item.num = 1
 							item.goodsCount = item.num;
+							item.subtotalMoney=item.price*item.goodsCount||0
 						})
 						res.data.freeService.map(item => {
 							item.num = 1
 							item.goodsCount = item.num;
+							item.subtotalMoney=item.price*item.goodsCount||0
 						})
 						res.data.freeGoods.map(item => {
 							item.num = 1
 							item.goodsCount = item.num;
+							item.subtotalMoney=item.price*item.goodsCount||0
 						})
 							this.otherVipList=res.data
 					}else{
@@ -352,7 +356,6 @@
 					arr1.map(item => {
 						item.choose='赠送--商品'
 						item.goodsName = item.name;
-						// item.goodsCount = 1;
 						item.mapList = [];
 						item.goodsCome = 2;
 						item.isGift = 0;

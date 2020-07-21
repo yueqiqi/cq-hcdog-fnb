@@ -61,7 +61,7 @@
     <el-dialog
       :visible.sync="popShopServeVisible"
       center
-      width="60%"
+      width="75%"
       title="选择服务和商品"
     >
       <div class="popShopServeLeft">
@@ -162,10 +162,10 @@
                 </el-input>
               </div>
             </span>
-            <div style="height:360px">
+            <div style="height:360px;width: 100%;">
               <el-table
                 :data="tableData"
-                style="width: 560px"
+                style="width: 100%"
                 height="360"
                 :header-cell-style="{ background: '#eef1f6' }"
                 align="center"
